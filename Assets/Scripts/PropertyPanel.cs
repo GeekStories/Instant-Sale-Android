@@ -1,272 +1,194 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class PropertyPanel : MonoBehaviour
-{
-    public GameManager gameManager;
+public class PropertyPanel : MonoBehaviour {
+  public GameManager gameManager;
+  public GameObject selectedPanel;
+  public GameObject PropertyManagersBoxPanel;
 
-    public Text upgradeText,
-        currentOfferText,
-        tenantText;
+  public Text upgradeText, currentOfferText, tenantText;
+  public Text propertyDetailsText;
 
-    public Button upgradeButton,
-        sellButton,
-        findNewTenantButton;
+  public Button upgradeButton, sellButton, findNewTenantButton;
 
-    public GameObject PropertyManagersBoxPanel;
+  public Card card;
 
-    public Text propertyDetailsText;
+  public int cost, rentUpgradeAmount, currentOffer, activeSlot;
 
-    public Card card;
+  public void OpenPropertyPanel(string name) {
+    gameObject.SetActive(!gameObject.activeInHierarchy); // Show the property panel
 
-    public int cost,
-        rentUpgradeAmount,
-        currentOffer,
-        activeSlot;
+    if(gameObject.activeInHierarchy == false) return;
 
-    public void OpenPropertyPanel(string name)
-    {
-        gameObject.SetActive(!gameObject.activeInHierarchy); // Show the property panel
+    GameObject propertySlot = GameObject.Find("PropertySlot_" + name);
+    selectedPanel = propertySlot;
+    activeSlot = int.Parse(name);
 
-        if (gameObject.activeInHierarchy == false)
-        {
-            return;
-        }
+    card = (propertySlot.transform.childCount > 1) ? propertySlot.GetComponentInChildren<Card>() : null;
 
-        GameObject propertySlot = GameObject.Find("PropertySlot_" + name);
-        activeSlot = int.Parse(name);
+    if(card == null) {
+      upgradeText.text = "No property in current slot!";
+      upgradeButton.interactable = false;
 
-        card =
-            (propertySlot.transform.childCount > 1)
-                ? propertySlot.GetComponentInChildren<Card>()
-                : null;
+      currentOfferText.text = "No property available!";
+      sellButton.interactable = false;
 
-        if (card == null)
-        {
-            upgradeText.text = "No property in current slot!";
-            upgradeButton.interactable = false;
+      tenantText.text = "No property available!";
+      findNewTenantButton.interactable = false;
 
-            currentOfferText.text = "No property available!";
-            sellButton.interactable = false;
-
-            tenantText.text = "No property available!";
-            findNewTenantButton.interactable = false;
-
-            return;
-        }
-
-        // Can we get tenants?
-        findNewTenantButton.interactable = !card.tenants;
-
-        UpgradeText();
-        TenantsText();
-        SellPropertyText();
-        UpdatePropertyDetailsText();
+      return;
     }
 
-    public void AssignManager(GameObject newManager)
-    {
-        if (card.assignedManager != "")
-        {
-            ClearManager();
-        }
+    // Can we get tenants?
+    findNewTenantButton.interactable = !card.tenants;
 
-        //Assign the new, selected manager
-        card.assignedManager = newManager.name;
-        card.ChangeBonus("manager_bonus", (newManager.GetComponent<Manager>().bonusAmount));
-        newManager.transform.GetChild(2).gameObject.SetActive(true);
-        Debug.Log("Assigned manager: " + newManager.name);
+    UpgradeText();
+    TenantsText();
+    SellPropertyText();
+    UpdatePropertyDetailsText();
+  }
 
-        newManager.GetComponent<Toggle>().interactable = false;
+  public void AssignManager(GameObject newManager) {
+    if(card.assignedManager != "") ClearManager();
 
-        UpdatePropertyDetailsText();
+    //Assign the new, selected manager
+    card.assignedManager = newManager.name;
+    card.ChangeBonus("manager_bonus", (newManager.GetComponent<Manager>().bonusAmount));
+    newManager.transform.GetChild(2).gameObject.SetActive(true);
+    Debug.Log("Assigned manager: " + newManager.name);
+
+    newManager.GetComponent<Toggle>().interactable = false;
+
+    card.assignedManagerImage = newManager.transform.GetChild(0).GetComponent<Image>().sprite;
+    selectedPanel.GetComponent<DropZone>().managerImage.sprite = card.assignedManagerImage;
+
+    UpdatePropertyDetailsText();
+  }
+
+  public void ClearManager() {
+    foreach(Transform manager in PropertyManagersBoxPanel.transform) {
+      if(manager.name == card.assignedManager) {
+        manager.GetComponent<Toggle>().isOn = false;
+        manager.transform.GetChild(2).gameObject.SetActive(false);
+        manager.GetComponent<Toggle>().interactable = true;
+      }
     }
 
-    public void ClearManager()
-    {
-        foreach (Transform manager in PropertyManagersBoxPanel.transform)
-        {
-            if (manager.name == card.assignedManager)
-            {
-                manager.GetComponent<Toggle>().isOn = false;
-                manager.transform.GetChild(2).gameObject.SetActive(false);
-                manager.GetComponent<Toggle>().interactable = true;
-            }
-        }
+    card.ChangeBonus("manager_bonus", 1.00f);
+    card.assignedManager = "";
+    card.assignedManagerImage = gameManager.defaultManagerSprite;
+    selectedPanel.GetComponent<DropZone>().managerImage.sprite = gameManager.defaultManagerSprite;
 
-        card.ChangeBonus("manager_bonus", 1.00f);
-        card.assignedManager = "";
-        UpdatePropertyDetailsText();
+    UpdatePropertyDetailsText();
+  }
 
-        Debug.Log("Un-assigned manager: " + card.assignedManager);
-    }
+  public void UpdatePropertyDetailsText() {
+    string tenants = (!card.tenants) ? "No" : "Yes";
+    string man = (card.assignedManager == "") ? "No" : "Yes";
+    string slot = $"{(card.bonuses["panel_bonus"] == 0.00f ? "None" : "%")}{((card.bonuses["panel_bonus"] - 1) * 100):F2}";
+    string managerBonus = $"{(card.assignedManager == "" ? "None" : "%")}{(GameObject.Find(card.assignedManager).GetComponent<Manager>().bonusAmount - 1) * 100:F2}";
 
-    public void UpdatePropertyDetailsText()
-    {
-        string tenants = (!card.tenants) ? "No" : "Yes";
-        string man = (card.assignedManager == "") ? "No" : "Yes";
-        string slot =
-            (card.bonuses["panel_bonus"] == 0.00f)
-                ? "None"
-                : "%" + ((card.bonuses["panel_bonus"] - 1) * 100).ToString("F2");
-        string managerBonus =
-            (card.assignedManager == "")
-                ? "None"
-                : "%"
-                  + (
-                      (
-                          GameObject.Find(card.assignedManager).GetComponent<Manager>().bonusAmount
-                          - 1
-                      ) * 100
-                  ).ToString("F2");
-        propertyDetailsText.text =
-            "Tenants: "
-            + tenants
-            + "\nManager: "
-            + man
-            + "\n\nValue\n$"
-            + card.cost.ToString("#,##0")
-            + "\n\nBase Rent\n$"
-            + card.baseRent.ToString("#,##0")
-            + "\n\nActual Rent\n$"
-            + card.rent.ToString()
-            + "\n\n-=Bonuses=-\n\nSlot: "
-            + slot
-            + "\nManager: "
-            + managerBonus
-            + "\n\n-=Current Tennants=-\n\nTerm: "
-            + card.tenantTermRemaining
-            + "/"
-            + card.tenantTerm
-            + "\nRisk: Low\n\nPower Usage\n"
-            + card.powerUse.ToString("#,##0")
-            + " KWH";
-    }
+    propertyDetailsText.text =
+      $"Tenants: {tenants}\n" +
+      $"Manager: {man}\n\n" +
+      $"Value: {card.cost:#,##0}\n" +
+      $"Base Rent: {card.baseRent:#,##0}\n" +
+      $"Actual Rent: {card.rent}\n\n" +
+      $"-=Bonuses=-\n\n" +
+      $"Slot: {slot}\n" +
+      $"Manager: {managerBonus}\n\n" +
+      $"-=Current Tennants=-\n\n" +
+      $"Term: {card.tenantTermRemaining}/{card.tenantTerm}\n" +
+      $"Risk: Low\n\n" +
+      $"Power Usage: {card.powerUse:#,##0} KWH";
+  }
 
-    public void PurchaseUpgrade()
-    {
-        if (gameManager.money >= cost)
-        {
-            //Deduct the money
-            gameManager.AddMoney(-cost, "Upgrade Purchase");
+  public void PurchaseUpgrade() {
+    if(gameManager.addMoneyAmnt < cost) return;
 
-            //Apply the upgrade
-            card.baseRent += rentUpgradeAmount;
+    //Deduct the money
+    gameManager.bank.AddMoney(-cost, "Upgrade Purchase");
 
-            //Increase the value of the property
-            card.cost += Mathf.FloorToInt(card.cost * 0.28f);
+    //Apply the upgrade
+    card.baseRent += rentUpgradeAmount;
 
-            //Update the cards text
-            card.UpdateRent();
+    //Increase the value of the property
+    card.cost += Mathf.FloorToInt(card.cost * 0.28f);
 
-            UpgradeText();
-            SellPropertyText();
-            UpdatePropertyDetailsText();
+    //Update the cards text
+    card.UpdateRent();
 
-            gameManager.GameStats["MoneySpentOnUpgrades"] += cost;
-            gameManager.GameStats["TotalUpgrades"]++;
+    UpgradeText();
+    SellPropertyText();
+    UpdatePropertyDetailsText();
 
-            //check for high score
-            if (card.rent > gameManager.GameStats["HighestRental"])
-                gameManager.GameStats["HighestRental"] = card.rent;
-            if (card.cost > gameManager.GameStats["MostExpensiveProperty"])
-            {
-                gameManager.GameStats["MostExpensiveProperty"] = card.cost;
-            }
-        }
-        else
-        {
-            upgradeText.text = "Not enough money!";
-        }
-    }
+    gameManager.GameStats["MoneySpentOnUpgrades"] += cost;
+    gameManager.GameStats["TotalUpgrades"]++;
 
-    public void SellProperty()
-    {
-        gameManager.AddMoney(currentOffer, "Property Sale");
+    //check for high score
+    if(card.rent > gameManager.GameStats["HighestRental"]) gameManager.GameStats["HighestRental"] = card.rent;
+    if(card.cost > gameManager.GameStats["MostExpensiveProperty"]) gameManager.GameStats["MostExpensiveProperty"] = card.cost;
+  }
 
-        card.transform.parent
-            .GetComponent<BuyPanel>()
-            .openPropertySlotButton.GetComponent<Image>().sprite = gameManager.normal;
-        card.transform.parent
-            .GetComponent<BuyPanel>()
-            .openPropertySlotButton.GetComponent<Image>().color = Color.white;
+  public void SellProperty() {
+    gameManager.bank.AddMoney(currentOffer, "Property Sale");
 
-        card.Destroy();
+    card.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().sprite = gameManager.normal;
+    card.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().color = Color.white;
 
-        gameManager.GameStats["TotalPropertiesSold"]++;
-        OpenPropertyPanel("none");
-    }
+    card.Destroy();
 
-    void UpgradeText()
-    {
-        rentUpgradeAmount = Mathf.FloorToInt(card.baseRent * 0.05f);
-        cost = Mathf.FloorToInt(card.cost * card.upgradeMultiplier);
+    gameManager.GameStats["TotalPropertiesSold"]++;
+    OpenPropertyPanel("none");
+  }
 
-        upgradeText.text =
-            "Upgrade Cost: $"
-            + cost.ToString("#,##0")
-            + "\n($"
-            + card.baseRent
-            + ") -> $"
-            + (card.baseRent + rentUpgradeAmount).ToString("#,##0");
+  void UpgradeText() {
+    rentUpgradeAmount = Mathf.FloorToInt(card.baseRent * 0.05f);
+    cost = Mathf.FloorToInt(card.cost * card.upgradeMultiplier);
+    upgradeButton.interactable = true;
 
-        upgradeButton.interactable = true;
-    }
+    upgradeText.text =
+      $"Upgrade Cost: ${cost:#,##0}\n" +
+      $"(${card.baseRent}) -> ${(card.baseRent + rentUpgradeAmount):#,##0}";
+  }
 
-    void SellPropertyText()
-    {
-        currentOffer = ValueProperty();
-        currentOfferText.text =
-            "Property Value: "
-            + card.cost.ToString("#,##0")
-            + "\n\n Current Offer: $"
-            + currentOffer.ToString("#,##0");
-        sellButton.interactable = true;
-    }
+  void SellPropertyText() {
+    currentOffer = ValueProperty();
+    sellButton.interactable = true;
 
-    int ValueProperty()
-    {
-        int baseValue = card.cost;
-        int value = Mathf.FloorToInt(baseValue * gameManager.supplyDemandIndex);
-        return value;
-    }
+    currentOfferText.text =
+      $"Property Value: {card.cost:#,##0} \n\n" +
+      $"Current Offer: ${currentOffer:#,##0}";
+  }
 
-    public void FindTenant()
-    {
-        card.tenants = true;
-        card.tenantTerm = Random.Range(1, 7) * 3;
-        card.tenantTermRemaining = card.tenantTerm;
-        card.tenantMoveInWeek = gameManager.week;
+  int ValueProperty() {
+    int baseValue = card.cost;
+    return Mathf.FloorToInt(baseValue * gameManager.supplyDemandIndex);
+  }
 
-        gameManager.GameStats["TotalNumberTenants"] += Random.Range(1, 5);
+  public void FindTenant() {
+    card.tenants = true;
+    card.tenantTerm = Random.Range(1, 7) * 3;
+    card.tenantTermRemaining = card.tenantTerm;
+    card.tenantMoveInWeek = gameManager.week;
 
-        findNewTenantButton.interactable = false;
+    gameManager.GameStats["TotalNumberTenants"] += Random.Range(1, 5);
 
-        card.transform.parent
-            .GetComponent<BuyPanel>()
-            .openPropertySlotButton.GetComponent<Image>().sprite = gameManager.normal;
-        card.transform.parent
-            .GetComponent<BuyPanel>()
-            .openPropertySlotButton.GetComponent<Image>().color = Color.white;
+    findNewTenantButton.interactable = false;
 
-        TenantsText();
-        UpdatePropertyDetailsText();
+    card.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().sprite = gameManager.normal;
+    card.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().color = Color.white;
 
-        gameManager.tenancyTexts[activeSlot - 1].text = card.tenantTerm.ToString();
-    }
+    TenantsText();
+    UpdatePropertyDetailsText();
 
-    void TenantsText()
-    {
-        tenantText.text =
-            "Current Tenants: "
-            + card.tenants
-            + "\n\nLease Term: "
-            + card.tenantTermRemaining
-            + "/"
-            + card.tenantTerm
-            + " Months \n\n Monthly Power:"
-            + card.powerUse;
-    }
+    gameManager.tenancyTexts[activeSlot - 1].text = card.tenantTerm.ToString();
+  }
+
+  void TenantsText() {
+    tenantText.text =
+      $"Current Tenants: {card.tenants} \n\n" +
+      $"Lease Term: {card.tenantTermRemaining}/{card.tenantTerm} Months \n\n" +
+      $"Monthly Power: {card.powerUse}";
+  }
 }

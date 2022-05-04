@@ -1,53 +1,53 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler{
+public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler {
 
-    public Transform parentToReturnTo = null;
-    GameManager gameManager;
-    Card c;
+  public Transform parentToReturnTo = null;
+  GameManager gameManager;
+  Card c;
 
-    private void Start(){
-        gameManager = GetComponent<Card>().gameManager;
-        c = GetComponent<Card>();
+  private void Start() {
+    gameManager = GetComponent<Card>().gameManager;
+    c = GetComponent<Card>();
+  }
+
+  public void OnBeginDrag(PointerEventData eventData) {
+    if(gameManager.sounds) gameManager.ambientSource.PlayOneShot(gameManager.pickUpCard);
+
+    parentToReturnTo = transform.parent;
+
+    if(parentToReturnTo.tag != "CardPile") { //If the card was taken from a property slot
+                                             //Reset the open panel icon
+      parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<UnityEngine.UI.Image>().sprite = gameManager.normal;
+      parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<UnityEngine.UI.Image>().color = Color.white;
     }
 
-    public void OnBeginDrag(PointerEventData eventData){
-        if (gameManager.sounds) gameManager.ambientSource.PlayOneShot(gameManager.pickUpCard);
+    transform.SetParent(transform.parent.parent);
 
-        parentToReturnTo = transform.parent;
+    //deduct any panel bonus and update the rent 
+    c.ChangeBonus("panel_bonus", 1);
 
-        if(parentToReturnTo.tag != "CardPile") { //If the card was taken from a property slot
-            //Reset the open panel icon
-            parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<UnityEngine.UI.Image>().sprite = gameManager.normal;
-            parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<UnityEngine.UI.Image>().color = Color.white;
-        }
+    GetComponent<CanvasGroup>().blocksRaycasts = false;
+  }
 
-        transform.SetParent(transform.parent.parent);
+  public void OnDrag(PointerEventData eventData) {
+    if(Input.GetMouseButton(1)) return;
 
-        //deduct any panel bonus and update the rent 
-        c.ChangeBonus("panel_bonus", 1);
+    transform.position = eventData.position;
+  }
 
-        GetComponent<CanvasGroup>().blocksRaycasts = false;
+  public void OnEndDrag(PointerEventData eventData) {
+    transform.SetParent(parentToReturnTo);
+
+    if(parentToReturnTo.name != "Card Pile") {
+      GetComponent<Card>().ChangeBonus("panel_bonus", parentToReturnTo.GetComponent<BuyPanel>().panelBonus);
     }
 
-    public void OnDrag(PointerEventData eventData){
-        if (Input.GetMouseButton(1)) return;
+    GetComponent<CanvasGroup>().blocksRaycasts = true;
 
-        transform.position = eventData.position;
+    if(gameManager.sounds) {
+      gameManager.ambientSource.PlayOneShot(gameManager.placeCardSounds[Random.Range(0, gameManager.placeCardSounds.Length)]);
     }
-
-    public void OnEndDrag(PointerEventData eventData){
-        transform.SetParent(parentToReturnTo);
-        
-        if(parentToReturnTo.name != "Card Pile"){
-            GetComponent<Card>().ChangeBonus("panel_bonus", parentToReturnTo.GetComponent<BuyPanel>().panelBonus); 
-        }
-        
-        GetComponent<CanvasGroup>().blocksRaycasts = true;
-
-        if (gameManager.sounds){
-            gameManager.ambientSource.PlayOneShot(gameManager.placeCardSounds[Random.Range(0, gameManager.placeCardSounds.Length)]);
-        }
-    }
+  }
 }
