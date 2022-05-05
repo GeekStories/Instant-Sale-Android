@@ -11,7 +11,6 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     gameManager = GetComponent<Card>().gameManager;
     c = GetComponent<Card>();
   }
-
   public void OnBeginDrag(PointerEventData eventData) {
     if(gameManager.sounds) gameManager.ambientSource.PlayOneShot(gameManager.pickUpCard);
 
@@ -30,13 +29,11 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
     GetComponent<CanvasGroup>().blocksRaycasts = false;
   }
-
   public void OnDrag(PointerEventData eventData) {
     if(Input.GetMouseButton(1)) return;
 
     transform.position = eventData.position;
   }
-
   public void OnEndDrag(PointerEventData eventData) {
     transform.SetParent(parentToReturnTo);
 

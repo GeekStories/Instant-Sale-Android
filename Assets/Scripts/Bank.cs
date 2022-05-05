@@ -5,29 +5,29 @@ using UnityEngine.UI;
 public class Bank : MonoBehaviour {
   public GameManager gameManager;
 
+  public GameObject transactionObject;
+
   public Dictionary<int, Text> contractsText = new();
   public Dictionary<int, Text> defaultTexts = new();
-  public Dictionary<int, int[]> Loans = new();
+  public Dictionary<int, float[]> Loans = new() { };
   public Dictionary<int, Text> loansAccountText = new();
 
-  public int creditLimit = 15000, money = 0, totalDebt = 0;
+  public float creditLimit = 15000, money = 0, totalDebt = 0;
 
   public Toggle[] termSelectors;
   public Slider loanAmountSlider;
 
-  public Text moneyText, creditLimitText, loanAmountText, loanTotalText, transactionsText, debtText;
+  public Text moneyText, creditLimitText, loanAmountText, loanTotalText, debtText;
 
   public GameObject LoanObject, LoanObjectContainer;
-  public GameObject loansPanel, stocksPanel, savingsPanel, historyPanel;
+  public GameObject loansPanel, stocksPanel, savingsPanel, transactionsPanel, transactionsTable;
   private GameObject currentPanel;
 
   private void Start() {
-    gameManager = GetComponent<GameManager>();
     currentPanel = loansPanel;
     creditLimitText.text = $"Credit limit: ${creditLimit:#,##0}";
-    AddMoney(10000, "Startup Funds");
+    AddMoney(100000, "Startup Loan");
   }
-
   public void ChangePanel(string panelName) {
     switch(panelName) {
       case "loans":
@@ -48,44 +48,43 @@ public class Bank : MonoBehaviour {
       case "trans":
         if(currentPanel.name == "History") return;
         currentPanel.SetActive(false);
-        currentPanel = historyPanel;
+        currentPanel = transactionsPanel;
         break;
     }
 
     currentPanel.SetActive(true);
   }
-
-  public void AddMoney(int amount, string purchaseType) {
+  public void AddMoney(float amount, string purchaseType) {
     money += amount;
     moneyText.text = $"${money:#,##0}";
 
-    if(amount != 0) {
-      //<purchaseType>: <amount spent or gained> | <balance after>
-      string oldText = transactionsText.text;
-      transactionsText.text = $"{purchaseType}: ${amount:#,##0)} | {money:#,##0} \n {oldText}";
-    }
+    GameObject newTransaction = Instantiate(transactionObject, transactionsTable.transform);
+    newTransaction.transform.SetSiblingIndex(0);
+    newTransaction.transform.GetChild(0).GetComponent<Text>().text = $"${amount:#,##0}";
+    newTransaction.transform.GetChild(0).GetComponent<Text>().color = amount > 0 ? Color.green : Color.red;
+    newTransaction.transform.GetChild(1).GetComponent<Text>().text = $"{(amount > 0 ? "deposit" : "withdraw")}";
+    newTransaction.transform.GetChild(2).GetComponent<Text>().text = $"${money:#,##0}";
+    newTransaction.transform.GetChild(3).GetComponent<Text>().text = $"{purchaseType}";
 
     if(money > gameManager.GameStats["MostAmountOfMoney"]) gameManager.GameStats["MostAmountOfMoney"] = money;
   }
-
   public void TakeRepayments() {
     if(Loans.Count > 0) {
       int i;
-      foreach(KeyValuePair<int, int[]> loan in Loans) {
+      foreach(KeyValuePair<int, float[]> loan in Loans) {
         i = loan.Key;
-        int defaults = loan.Value[4];
-        int amountOwing = loan.Value[2] - loan.Value[3];
+        int defaults = (int)loan.Value[4];
+        float amountOwing = loan.Value[2] - loan.Value[3];
 
-        if(amountOwing == 0)
-          continue;
+        if(amountOwing == 0) continue;
 
         if(defaults < 3) {
           //Check the loan hasn't defaulted
-          int paymentWeek = loan.Value[5];
+          float paymentWeek = loan.Value[5];
 
           if(gameManager.week == paymentWeek && loan.Value[2] > loan.Value[3]) {
             //Check if this week is the payment week
-            int repayments = loan.Value[7];
+            float repayments = loan.Value[7];
 
             if(repayments > money && amountOwing > money) {
               //Check if the user has defaulted on this loan
@@ -105,7 +104,7 @@ public class Bank : MonoBehaviour {
               UpdateLoanText(loan.Key);
 
               //Increase credit limit by 5% of the finialized loan
-              creditLimit += Mathf.FloorToInt(loan.Value[2] * 0.075f);
+              creditLimit += loan.Value[2] * 0.075f;
               creditLimitText.text = $"Credit Limit: ${creditLimit:#,##0}";
               loanAmountSlider.maxValue = creditLimit;
               continue;
@@ -122,14 +121,14 @@ public class Bank : MonoBehaviour {
           }
         } else {
           //Force sell random assets until debt is paid.
-          int collectedValue = money;
+          float collectedValue = money;
           List<Card> propertiesToBeRepod = new();
 
           foreach(GameObject panel in gameManager.buyPanels) {
             if(panel.transform.childCount > 1) {
               Card c = panel.transform.GetChild(1).GetComponent<Card>();
 
-              collectedValue += Mathf.FloorToInt(c.cost * 0.90f);
+              collectedValue += c.cost * 0.90f;
               propertiesToBeRepod.Add(c);
 
               if(collectedValue > amountOwing) break;
@@ -138,7 +137,7 @@ public class Bank : MonoBehaviour {
 
           //Force sell the property
           foreach(Card property in propertiesToBeRepod) {
-            AddMoney(Mathf.FloorToInt(property.cost * 0.90f), "Property Sale"); //Force sell the property at %90 its value
+            AddMoney(property.cost * 0.90f, "Property Sale"); //Force sell the property at %90 its value
             property.Destroy();
           }
 
@@ -154,7 +153,7 @@ public class Bank : MonoBehaviour {
           GameObject.Find(loan.Key.ToString()).transform.GetChild(3).GetComponent<Button>().interactable = false;
 
           //Increase credit limit by 5% of the finialized loan
-          creditLimit += Mathf.FloorToInt(loan.Value[2] * 0.05f);
+          creditLimit += loan.Value[2] * 0.05f;
           creditLimitText.text = "Credit Limit: " + creditLimit.ToString("#,##0");
           loanAmountSlider.maxValue = creditLimit;
 
@@ -172,23 +171,19 @@ public class Bank : MonoBehaviour {
       }
     }
   }
-
   public void UpdateLoanText(int key) {
     contractsText[key].text = $"Account #{Loans[key][8]}";
     loansAccountText[key].text =
       $"Payable: ${(Loans[key][2] - Loans[key][3]):#,##0}\n" +
-      $"Monthly: ${Loans[key][7]:#,##0}({Loans[key][5]})\n" +
+      $"Monthly: ${Loans[key][7]:#,##0} (W{Loans[key][5]})\n" +
       $"Term: {Loans[key][0]}";
 
     defaultTexts[key].text = $"Defaults: {Loans[key][4]}/3";
     debtText.text = $"Total Debt: -${Calculate.TotalDebt("debt", Loans):#,##0}";
   }
-
   public void TakeLoan() {
     int term = GetSelectedToggle();
     int amnt = (int)loanAmountSlider.value;
-
-    int amntPayable = CalculateAmountPayable(amnt);
 
     if(creditLimit >= amnt /*&& (rent * 4) < repayments*/) {
       //Maybe in the future, add rental income as a factor?
@@ -201,7 +196,9 @@ public class Bank : MonoBehaviour {
       loansAccountText[key] = newLoanObj.transform.GetChild(1).GetComponent<Text>();
       defaultTexts[key] = newLoanObj.transform.GetChild(2).GetComponent<Text>();
 
-      int repayments = amntPayable / term;
+      float interestRate = GetInterestRate(term);
+      float repayments = CalculatePayments(amnt, interestRate, term);
+      float totalToPay = repayments * term;
       int paymentStartdate = gameManager.week + gameManager.month + gameManager.year;
 
       /* 0 = Loan Term.
@@ -213,7 +210,7 @@ public class Bank : MonoBehaviour {
       6 = Loan Issue Date
       7 = Repayments
       8 = Random Loan Account Number*/
-      int[] loan = { term, amnt, amntPayable, 0, 0, gameManager.week, paymentStartdate, repayments, key };
+      float[] loan = { term, amnt, totalToPay, 0, 0, gameManager.week, paymentStartdate, repayments, key };
 
       Loans[key] = loan;
 
@@ -230,14 +227,13 @@ public class Bank : MonoBehaviour {
       UpdateLoanText(key);
     }
   }
-
   public void PayLoanFull(int key) {
-    int amountOwing = Loans[key][2] - Loans[key][3];
+    float amountOwing = Loans[key][2] - Loans[key][3];
     if(money >= amountOwing) {
       AddMoney(-amountOwing, "Final Loan Payment");
 
       creditLimit += amountOwing;
-      creditLimit += Mathf.FloorToInt(Loans[key][2] * 0.07f);
+      creditLimit += Loans[key][2] * 0.07f;
       creditLimitText.text = $"Credit Limit: ${creditLimit:#,##0}";
 
       loanAmountSlider.maxValue = creditLimit;
@@ -252,43 +248,37 @@ public class Bank : MonoBehaviour {
 
     return;
   }
-
-  public int CalculateAmountPayable(int amnt) {
+  public float CalculateAmountPayable(int amnt) {
     int term = GetSelectedToggle();
-    float interestRate = 0.00f;
-
-    switch(term) {
-      case 12:
-        interestRate = 2.55f;
-        break;
-      case 24:
-        interestRate = 1.89f;
-        break;
-      case 36:
-        interestRate = 1.29f;
-        break;
-      case 48:
-        interestRate = 0.29f;
-        break;
-    }
-
-    return Mathf.FloorToInt(amnt * (1 + (interestRate / 100)));
+    float interestRate = GetInterestRate(term);
+    float repayments = CalculatePayments(amnt, interestRate, term);
+    return repayments * term;
   }
-
+  public float CalculatePayments(int amount, float interestRate, int term) {
+    float r = (interestRate / 12) / 100;
+    return Mathf.RoundToInt(amount * (r * (Mathf.Pow(1 + r, term)) / (Mathf.Pow(1 + r, term) - 1)));
+  }
+  public float GetInterestRate(int term) {
+    return term switch {
+      12 => 5.25f,
+      24 => 5.85f,
+      36 => 6.15f,
+      48 => 6.35f,
+      _ => 0,
+    };
+  }
   public void UpdateLoanAmountSliderText() {
     loanAmountText.text = "$" + loanAmountSlider.value.ToString("#,##0");
-    int amountPayable = CalculateAmountPayable((int)loanAmountSlider.value);
+    float amountPayable = CalculateAmountPayable((int)loanAmountSlider.value);
     loanTotalText.text =
       $"Total Repayable: ${amountPayable:#,##0}\n" +
-      $"Total Interest: ${(amountPayable - loanAmountSlider.value):#,##0}\n" +
+      $"Total Interest: ${amountPayable - loanAmountSlider.value:F2}\n" +
       $"Monthly Repayments: ${(amountPayable / GetSelectedToggle())} p/m";
   }
-
   int GetSelectedToggle() {
     foreach(Toggle t in termSelectors)
       if(t.isOn) return int.Parse(t.name); //returns selected toggle
 
     return 99;
   }
-
 }

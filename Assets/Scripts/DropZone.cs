@@ -9,11 +9,9 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
   public void OnPointerEnter(PointerEventData eventData) {
     //Add some cool border effects on the card when the pointer hovers over the card
   }
-
   public void OnPointerExit(PointerEventData eventData) {
     //Clear the cool border effects on the card when the pointer leaves the card
   }
-
   public void OnDrop(PointerEventData eventData) {
     if(gameManager.sounds) gameManager.ambientSource.PlayOneShot(gameManager.placeCardSounds[Random.Range(0, gameManager.placeCardSounds.Length)]);
 

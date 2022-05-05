@@ -11,9 +11,10 @@ public class PropertyPanel : MonoBehaviour {
 
   public Button upgradeButton, sellButton, findNewTenantButton;
 
-  public Card card;
+  public Card card = null;
 
-  public int cost, rentUpgradeAmount, currentOffer, activeSlot;
+  public int currentOffer = 0, activeSlot;
+  public float upgradeRentValueModifier = 0.05f;
 
   public void OpenPropertyPanel(string name) {
     gameObject.SetActive(!gameObject.activeInHierarchy); // Show the property panel
@@ -47,7 +48,6 @@ public class PropertyPanel : MonoBehaviour {
     SellPropertyText();
     UpdatePropertyDetailsText();
   }
-
   public void AssignManager(GameObject newManager) {
     if(card.assignedManager != "") ClearManager();
 
@@ -64,7 +64,6 @@ public class PropertyPanel : MonoBehaviour {
 
     UpdatePropertyDetailsText();
   }
-
   public void ClearManager() {
     foreach(Transform manager in PropertyManagersBoxPanel.transform) {
       if(manager.name == card.assignedManager) {
@@ -81,55 +80,56 @@ public class PropertyPanel : MonoBehaviour {
 
     UpdatePropertyDetailsText();
   }
-
   public void UpdatePropertyDetailsText() {
-    string tenants = (!card.tenants) ? "No" : "Yes";
+    string tenants = (card.tenants) ? "Yes" : "No";
     string man = (card.assignedManager == "") ? "No" : "Yes";
-    string slot = $"{(card.bonuses["panel_bonus"] == 0.00f ? "None" : "%")}{((card.bonuses["panel_bonus"] - 1) * 100):F2}";
-    string managerBonus = $"{(card.assignedManager == "" ? "None" : "%")}{(GameObject.Find(card.assignedManager).GetComponent<Manager>().bonusAmount - 1) * 100:F2}";
+    string slot = $"{(card.bonuses["panel_bonus"] == 0.00f ? "None" : $"%{((card.bonuses["panel_bonus"] - 1) * 100):F2}")}";
+    string managerBonus = $"{(card.assignedManager == "" ? "None" : $"%{(GameObject.Find(card.assignedManager).GetComponent<Manager>().bonusAmount - 1) * 100:F2}")}";
 
     propertyDetailsText.text =
       $"Tenants: {tenants}\n" +
-      $"Manager: {man}\n\n" +
-      $"Value: {card.cost:#,##0}\n" +
-      $"Base Rent: {card.baseRent:#,##0}\n" +
-      $"Actual Rent: {card.rent}\n\n" +
-      $"-=Bonuses=-\n\n" +
+      $"Manager: {man}\n\n\n" +
+      $"Value: ${card.cost:#,##0}\n" +
+      $"Base Rent: ${card.baseRent:#,##0}\n" +
+      $"Bond: ${card.bondCost:#,##0}\n" +
+      $"Actual Rent: ${card.rent}\n\n\n" +
+      $"-=Bonuses=-\n\n\n" +
       $"Slot: {slot}\n" +
-      $"Manager: {managerBonus}\n\n" +
-      $"-=Current Tennants=-\n\n" +
+      $"Manager: {managerBonus}\n\n\n" +
+      $"-=Current Tennants=-\n\n\n" +
       $"Term: {card.tenantTermRemaining}/{card.tenantTerm}\n" +
-      $"Risk: Low\n\n" +
-      $"Power Usage: {card.powerUse:#,##0} KWH";
+      $"Risk: Low\n\n\n" +
+      $"Power Usage:\n {card.powerUse:#,##0} KWH";
   }
-
   public void PurchaseUpgrade() {
-    if(gameManager.addMoneyAmnt < cost) return;
+    if(gameManager.bank.money < card.upgradeCost) return;
 
-    //Deduct the money
-    gameManager.bank.AddMoney(-cost, "Upgrade Purchase");
+    // Deduct the money (Check for new high score)
+    gameManager.bank.AddMoney(-card.upgradeCost, "Upgrade Purchase");
+    gameManager.GameStats["MoneySpentOnUpgrades"] += card.upgradeCost;
 
-    //Apply the upgrade
-    card.baseRent += rentUpgradeAmount;
+    // Increase rent
+    card.baseRent += Mathf.FloorToInt(card.upgradeCost * upgradeRentValueModifier);
 
-    //Increase the value of the property
-    card.cost += Mathf.FloorToInt(card.cost * 0.28f);
+    // Increase the value of the property
+    card.cost += Mathf.FloorToInt(card.upgradeCost * 1.25f);
 
-    //Update the cards text
+    // Increase price for next upgrade
+    card.upgradeCost = Mathf.FloorToInt(card.cost * 0.25f);
+
+    // Update the cards text
     card.UpdateRent();
 
     UpgradeText();
     SellPropertyText();
     UpdatePropertyDetailsText();
 
-    gameManager.GameStats["MoneySpentOnUpgrades"] += cost;
     gameManager.GameStats["TotalUpgrades"]++;
 
-    //check for high score
+    // Check for high score
     if(card.rent > gameManager.GameStats["HighestRental"]) gameManager.GameStats["HighestRental"] = card.rent;
     if(card.cost > gameManager.GameStats["MostExpensiveProperty"]) gameManager.GameStats["MostExpensiveProperty"] = card.cost;
   }
-
   public void SellProperty() {
     gameManager.bank.AddMoney(currentOffer, "Property Sale");
 
@@ -141,37 +141,32 @@ public class PropertyPanel : MonoBehaviour {
     gameManager.GameStats["TotalPropertiesSold"]++;
     OpenPropertyPanel("none");
   }
-
   void UpgradeText() {
-    rentUpgradeAmount = Mathf.FloorToInt(card.baseRent * 0.05f);
-    cost = Mathf.FloorToInt(card.cost * card.upgradeMultiplier);
     upgradeButton.interactable = true;
 
     upgradeText.text =
-      $"Upgrade Cost: ${cost:#,##0}\n" +
-      $"(${card.baseRent}) -> ${(card.baseRent + rentUpgradeAmount):#,##0}";
+      $"Upgrade Cost: ${card.upgradeCost:#,##0}\n" +
+      $"(${card.baseRent}) -> ${Mathf.FloorToInt(card.baseRent + (card.upgradeCost * upgradeRentValueModifier)):#,##0}";
   }
-
   void SellPropertyText() {
     currentOffer = ValueProperty();
     sellButton.interactable = true;
 
     currentOfferText.text =
-      $"Property Value: {card.cost:#,##0} \n\n" +
+      $"Property Value: {card.cost:#,##0} \n" +
       $"Current Offer: ${currentOffer:#,##0}";
   }
-
   int ValueProperty() {
-    int baseValue = card.cost;
-    return Mathf.FloorToInt(baseValue * gameManager.supplyDemandIndex);
+    return Mathf.FloorToInt(card.cost * gameManager.supplyDemandIndex);
   }
-
   public void FindTenant() {
     card.tenants = true;
     card.tenantTerm = Random.Range(1, 7) * 3;
     card.tenantTermRemaining = card.tenantTerm;
     card.tenantMoveInWeek = gameManager.week;
-
+    gameManager.bank.AddMoney(card.rent * 4, "Bond Payment");
+    card.bondCost = card.rent * 4;
+    gameManager.bank.AddMoney(card.rent * 2, "Rent in Advance Payment");
     gameManager.GameStats["TotalNumberTenants"] += Random.Range(1, 5);
 
     findNewTenantButton.interactable = false;
@@ -184,11 +179,10 @@ public class PropertyPanel : MonoBehaviour {
 
     gameManager.tenancyTexts[activeSlot - 1].text = card.tenantTerm.ToString();
   }
-
   void TenantsText() {
     tenantText.text =
       $"Current Tenants: {card.tenants} \n\n" +
-      $"Lease Term: {card.tenantTermRemaining}/{card.tenantTerm} Months \n\n" +
+      $"Lease Term: {card.tenantTermRemaining}/{card.tenantTerm} Months\n" +
       $"Monthly Power: {card.powerUse}";
   }
 }

@@ -16,7 +16,7 @@ public class GenerateManagers : MonoBehaviour {
     newManagerComponent.gameManager = gameManager;
 
     newManagerComponent.weeklyPay = Random.Range(500, 999);
-    newManagerComponent.hireCost = Mathf.FloorToInt(newManagerComponent.weeklyPay * Random.Range(4, 9));
+    newManagerComponent.hireCost = newManagerComponent.weeklyPay * Random.Range(4, 9);
 
     float newManagerBonusAmount = (float)System.Math.Round(Random.Range(1.01f, 1.08f), 2);
     newManagerComponent.bonusAmount = newManagerBonusAmount;

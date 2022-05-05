@@ -21,7 +21,6 @@ public class TextTyper : MonoBehaviour {
     textToType = textComp.text;
     textComp.text = "";
   }
-
   public void StartTyping() {
     if(!typing) {
       InvokeRepeating(nameof(Type), startDelay, typeSpeed);
@@ -29,7 +28,6 @@ public class TextTyper : MonoBehaviour {
       print($"{gameObject.name}: Is already typing!");
     }
   }
-
   public void StopTyping() {
     CancelInvoke("Type");
     counter = 0;
@@ -37,7 +35,6 @@ public class TextTyper : MonoBehaviour {
     textComp.text = "";
     textToType = "";
   }
-
   private void Type() {
     typing = true;
     textComp.text += textToType[counter];
@@ -48,6 +45,5 @@ public class TextTyper : MonoBehaviour {
       CancelInvoke("Type");
     }
   }
-
   public bool IsTyping() { return typing; }
 }

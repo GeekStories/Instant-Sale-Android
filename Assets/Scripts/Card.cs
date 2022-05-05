@@ -3,15 +3,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class Card : MonoBehaviour {
-  public int cost;
-  public int baseRent, rent, rentMin = 560, rentMax = 1149;
+  public int cost, minCost, maxCost, bondCost;
+  public int baseRent, rent, rentMin, rentMax;
   public int tenantTerm, tenantTermRemaining, tenantMoveInWeek;
   public int powerUse;
   public int rentBuffer = 6;
   public int weeksLeft;
   public int upgradeCost;
-
-  public float upgradeMultiplier = 1.25f;
 
   public string assignedManager = "";
 
@@ -41,21 +39,19 @@ public class Card : MonoBehaviour {
     spriteImage = transform.GetChild(2).GetComponent<Image>();
     spriteImage.sprite = houses[Random.Range(0, houses.Length - 1)];
 
-    cost = Random.Range(gameManager.minCost, gameManager.maxCost) * 1000;
+    cost = Mathf.FloorToInt(Random.Range(minCost, maxCost) * gameManager.supplyDemandIndex);
     baseRent = Random.Range(rentMin, rentMax);
+    upgradeCost = Mathf.FloorToInt(cost * 0.25f);
 
     UpdateRent();
   }
-
   public void Destroy() {
     Destroy(gameObject);
   }
-
   public void ChangeBonus(string b, float n) {
     bonuses[b] = n;
     UpdateRent();
   }
-
   public void UpdateRent() {
     rent = baseRent;
     //Calculate all the bonuses into the rent

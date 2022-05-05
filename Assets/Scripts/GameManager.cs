@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour {
   public int rent, score;
   public int cardsLeft, cardsLeftMax;
   public int year, month, week, weeksPerMinute, maxWeeksPerMinute = 0;
-  public int minCost = 3, maxCost = 15, rentMax = 75, networth, addMoneyAmnt;
+  public int networth, addMoneyAmnt;
   public int nextUpgrade = 5;
 
   public float timeBuffer = 0.75f;
@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour {
   public bool music = false, sounds = false, repeatingWeek = false;
 
   public Dictionary<string, int> deductions = new();
-  public Dictionary<string, int> GameStats = new() {
+  public Dictionary<string, float> GameStats = new() {
       { "TotalPropertiesOwned", 0 },
       { "TotalMoneySpent", 0 },
       { "TotalPropertiesSold", 0 },
@@ -79,8 +79,6 @@ public class GameManager : MonoBehaviour {
   public Button musicToggle, soundToggle, fireManagerButton;
 
   private void Start() {
-    bank = GetComponent<Bank>();
-
     source = GetComponent<AudioSource>();
     BackgroundMusic();
 
@@ -101,14 +99,13 @@ public class GameManager : MonoBehaviour {
     InvokeRepeating(nameof(RepeatingWeeks), 0, (60 - weeksPerMinute) * timeBuffer);
     InvokeRepeating(nameof(UpdateNetworth), 0, 0.5f);
   }
-
   public void UpdateNetworth () {
-    int networth = Calculate.NetWorth(buyPanels, sellBuffer, supplyDemandIndex, bank.money, bank.Loans);
+    float networth = Calculate.NetWorth(buyPanels, sellBuffer, supplyDemandIndex, bank.money, bank.Loans);
     netWorthText.text = $"NetWorth: ${networth:#,##0}";
 
     if(networth > GameStats["HighestNetworth"]) GameStats["HighestNetworth"] = networth;
 
-    int inOut = Calculate.RawIncome(buyPanels, bank.Loans, hiredManagers);
+    float inOut = Calculate.RawIncome(buyPanels, bank.Loans, hiredManagers);
 
     if(inOut == 0) {
       rawIncomeText.color = Color.grey;
@@ -125,7 +122,6 @@ public class GameManager : MonoBehaviour {
 
     GetComponent<Prestiege>().SetUnclaimedPoints(Mathf.RoundToInt(networth / 10000));
   }
-
   public void BackgroundMusic() {
     CancelInvoke("BackgroundMusic");
 
@@ -134,7 +130,6 @@ public class GameManager : MonoBehaviour {
 
     InvokeRepeating(nameof(BackgroundMusic), backgroundMusic[x].length, backgroundMusic[x].length);
   }
-
   public void CheckPile() {
     if(CardPile.childCount > 0) {
       //Are there any cards currently in the pile?
@@ -221,20 +216,18 @@ public class GameManager : MonoBehaviour {
     CheckPile();
 
     //Start of new week
-    supplyDemandIndex += Random.Range(-0.015f, 0.02f);
-    supplyDemandText.text = $"{supplyDemandIndex}";
+    supplyDemandIndex += Random.Range(-0.01f, 0.012f);
+    supplyDemandText.text = $"{supplyDemandIndex:F2}";
     cardsLeftText.text = $"{cardsLeft}/{cardsLeftMax}";
   }
-
   public void PayHiredManagers() {
     int totalPayment = 0;
     foreach(GameObject manager in hiredManagers) {
       totalPayment += manager.GetComponent<Manager>().weeklyPay;
     }
 
-    bank.AddMoney(-totalPayment, "Manager Payroll");
+    if(totalPayment > 0) bank.AddMoney(-totalPayment, "Manager Payroll");
   }
-
   public void SelectManager(GameObject manager) {
     Manager m = manager.GetComponent<Manager>();
 
@@ -253,7 +246,6 @@ public class GameManager : MonoBehaviour {
       selectedManager = manager;
     }
   }
-
   public void HireManager() {
     if(!selectedManager || currentManagersPanel.transform.childCount == 36) return;
 
@@ -286,7 +278,6 @@ public class GameManager : MonoBehaviour {
       SelectManager(managersForHire[0]);
     }
   }
-
   public void FireManager() {
     // Remove wage from payroll
     deductions.Remove(selectedHiredManager.name);
@@ -310,16 +301,21 @@ public class GameManager : MonoBehaviour {
 
     SelectManager(hiredManagers[0]);
   }
-
   public void CheckTenantTerms() {
     foreach(GameObject panel in buyPanels) {
       if(panel.transform.childCount > 1) {
         Card c = panel.transform.GetChild(1).GetComponent<Card>();
-        int propertySlot = int.Parse(panel.name[^1..]) - 1;
+        int propertySlot = int.Parse(panel.name[^1..]) - 1; // Grabs the last character (the panel number)
 
         if(!c.tenants) {
           tenancyTexts[propertySlot].text = "";
           continue;
+        }
+
+        if(week == c.tenantMoveInWeek) {
+          c.tenantTermRemaining--;
+          tenancyTexts[propertySlot].text = $"{c.tenantTermRemaining}";
+          GameStats["TotalMonthsStayed"]++;
         }
 
         //Check if the tenants term has run out
@@ -327,28 +323,22 @@ public class GameManager : MonoBehaviour {
           c.tenants = false;
           c.tenantTerm = 0;
           c.tenantTermRemaining = 0;
+          tenancyTexts[propertySlot].text = "";
+
+          bank.AddMoney(-c.bondCost, "Bond Reclaim");
 
           c.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().sprite = exclamation;
           c.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().color = Color.red;
           continue;
-        }
-
-        //Check if the tenants rent is due
-        bank.AddMoney((c.rent), "Rent Income");
-
-        if(week == c.tenantMoveInWeek) {
-          c.tenantTermRemaining--;
-          tenancyTexts[propertySlot].text = $"{c.tenantTermRemaining}";
-          GameStats["TotalMonthsStayed"]++;
+        } else {
+          bank.AddMoney(c.rent, "Rent Income");
         }
       }
     }
   }
-
   public void RepeatingWeeks() {
     if(weeksPerMinute > 0) NextWeek();
   }
-
   public void IncreaseWeeksPerSecond() {
     if(weeksPerMinute < maxWeeksPerMinute) {
       weeksPerMinute++;
@@ -357,7 +347,6 @@ public class GameManager : MonoBehaviour {
       InvokeRepeating(nameof(RepeatingWeeks), (60 - weeksPerMinute) * timeBuffer, (60 - weeksPerMinute) * timeBuffer);
     }
   }
-
   public void DecreaseWeeksPerSecond() {
     if(weeksPerMinute > 0) {
       weeksPerMinute--;
@@ -367,7 +356,6 @@ public class GameManager : MonoBehaviour {
       InvokeRepeating(nameof(RepeatingWeeks), (60 - weeksPerMinute) * timeBuffer, (60 - weeksPerMinute) * timeBuffer);
     }
   }
-
   public void PassCard() {
     if(CardPile.childCount > 0) {
       CardPile.GetChild(0).GetComponent<Card>().Destroy();
@@ -378,7 +366,6 @@ public class GameManager : MonoBehaviour {
       CheckPile();
     }
   }
-
   public void ToggleSound() {
     sounds = !sounds;
 
@@ -387,7 +374,6 @@ public class GameManager : MonoBehaviour {
 
     if(sounds) ambientSource.PlayOneShot(buttonClick);
   }
-
   public void ToggleMusic() {
     music = !music;
 
@@ -401,9 +387,8 @@ public class GameManager : MonoBehaviour {
 
     if(sounds) ambientSource.PlayOneShot(buttonClick);
   }
-
   public void CalculateScore() {
-    int score =
+    float score =
         GameStats["TotalPropertiesOwned"]
         + (GameStats["TotalMoneySpent"] / 100000)
         + GameStats["TotalPropertiesSold"]
@@ -437,9 +422,8 @@ public class GameManager : MonoBehaviour {
       $"Highest Networth Obtained: {GameStats["HighestNetworth"]:#,##0} \n" +
       $"Most Amount Of Money Had: {GameStats["MostAmountOfMoney"]:#,##0}";
 
-    PlayerPrefs.SetInt("UnclaimedPoints", score);
+    PlayerPrefs.SetFloat("UnclaimedPoints", score);
   }
-
   public void ResetGame() {
     UnityEngine.SceneManagement.SceneManager.LoadScene(0);
   }

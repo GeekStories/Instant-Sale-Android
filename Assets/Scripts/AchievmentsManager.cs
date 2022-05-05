@@ -29,7 +29,6 @@ public class AchievmentsManager : MonoBehaviour {
     gameManager = GetComponent<GameManager>();
     activePanel = 0;
   }
-
   public void ChangePanel(int p) {
     if(activePanel == p) {
       UpdatePanel(p);
@@ -39,7 +38,6 @@ public class AchievmentsManager : MonoBehaviour {
     activePanel = p;
     UpdatePanel(p);
   }
-
   void UpdatePanel(int p) {
     switch(p) {
       case 0: //Rent
@@ -86,7 +84,6 @@ public class AchievmentsManager : MonoBehaviour {
         break;
     }
   }
-
   public void ClaimReward() {
     switch(activePanel) {
       case 0: //RENT

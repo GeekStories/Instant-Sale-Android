@@ -21,7 +21,6 @@ public class Prestiege : MonoBehaviour {
 
     CheckPurchasableUpgrades();
   }
-
   public void CheckPurchasableUpgrades() {
     foreach(GameObject upgrade in prestiegeUpgrades) {
       int upgradeCost = upgrade.GetComponent<PrestiegeUpgrade>().Cost;
@@ -31,16 +30,12 @@ public class Prestiege : MonoBehaviour {
     // Reset the first prestiege upgrade to say Free instead of 0
     prestiegeUpgrades[0].transform.GetChild(0).GetComponent<Text>().text = "Free";
   }
-
   public void OpenPrestiegeUpgradePanel() { }
-
   public void ClaimPrestiegeUpgrade() { }
-
   public void SetUnclaimedPoints(int amount) {
     unclaimedPoints = amount;
     unclaimedPointsText.text = $"Unclaimed: {unclaimedPoints:#,##0}";
   }
-
   public void ClaimPoints() {
     if(unclaimedPoints == 0) return;
 
