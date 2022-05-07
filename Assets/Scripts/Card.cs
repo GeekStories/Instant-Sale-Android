@@ -6,19 +6,19 @@ public class Card : MonoBehaviour {
   public int cost, minCost, maxCost, bondCost;
   public int baseRent, rent, rentMin, rentMax;
   public int tenantTerm, tenantTermRemaining, tenantMoveInWeek;
-  public int powerUse;
-  public int rentBuffer = 6;
+  public int waterUsage = 0;
   public int weeksLeft;
-  public int upgradeCost;
+  public int newRent;
+  public int renovationTime = 0;
 
   public string assignedManager = "";
 
   public bool purchased;
   public bool tenants = false;
+  public bool underRenovation = false;
 
   public GameManager gameManager;
 
-  public Dictionary<string, float> bonuses;
   public Text cardText;
 
   public Sprite[] houses;
@@ -26,13 +26,13 @@ public class Card : MonoBehaviour {
 
   public Image spriteImage;
 
+  public Dictionary<string, float> bonuses = new() {
+    { "panel_bonus", 1.00f },
+    { "manager_bonus", 1.00f }
+  };
+
   private void Start() {
     gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
-
-    bonuses = new Dictionary<string, float>() {
-      {"panel_bonus", 1.00f},
-      {"manager_bonus", 1.00f}
-    };
 
     cardText = transform.GetChild(1).GetComponent<Text>();
 
@@ -41,7 +41,6 @@ public class Card : MonoBehaviour {
 
     cost = Mathf.FloorToInt(Random.Range(minCost, maxCost) * gameManager.supplyDemandIndex);
     baseRent = Random.Range(rentMin, rentMax);
-    upgradeCost = Mathf.FloorToInt(cost * 0.25f);
 
     UpdateRent();
   }
@@ -62,5 +61,11 @@ public class Card : MonoBehaviour {
     cardText.text =
       $"Value: ${cost:#,##0}\n" +
       $"Rent: +${rent}";
+  }
+
+  public void UpdateRenoTime() {
+    cardText.text =
+      $"Value: ${cost:#,##0}\n" +
+      $"Reno: {renovationTime} weeks";
   }
 }

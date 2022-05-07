@@ -18,29 +18,22 @@ public static class Calculate {
     return 0;
   }
 
-  public static float TotalDebt(string f, Dictionary<int, float[]> Loans) {
-    float debt = 0;
+  public static float TotalDebt(string f, List<Dictionary<string, int>> Loans) {
+    int debt = 0;
 
     if(Loans.Count == 0)
       return 0;
 
     if(f == "networth") {
-      foreach(KeyValuePair<int, float[]> loan in Loans) {
-        if(loan.Value[0] != 12)
-          debt += (loan.Value[2] - loan.Value[3]);
-      }
-
+      Loans.ForEach(loan => debt += loan["term"] != 12 ? loan["total"] - loan["totalPaid"] : 0);
       return debt;
     }
 
-    foreach(KeyValuePair<int, float[]> loan in Loans) {
-      debt += (loan.Value[2] - loan.Value[3]);
-    }
-
+    Loans.ForEach(loan => debt += loan["total"] - loan["totalPaid"]);
     return debt;
   }
 
-  public static float RawIncome(GameObject[] buyPanels, Dictionary<int, float[]> Loans, List<GameObject> hiredManagers) {
+  public static float RawIncome(GameObject[] buyPanels, List<Dictionary<string, int>> Loans, List<GameObject> hiredManagers) {
     float x = 0; //Start at 0
 
     //Add up all the rent currently being collected
@@ -54,8 +47,8 @@ public static class Calculate {
     }
 
     //Deduct all the loan repayments
-    foreach(KeyValuePair<int, float[]> loan in Loans) {
-      x -= loan.Value[7] / 4;
+    foreach(Dictionary<string, int> loan in Loans) {
+      x -= loan["repayments"] / 4;
     }
 
     // Deduct payroll
@@ -67,7 +60,7 @@ public static class Calculate {
     return x;
   }
 
-  public static float NetWorth(GameObject[] buyPanels, float sellBuffer, float supplyDemandIndex, float money, Dictionary<int, float[]> Loans) {
+  public static float NetWorth(GameObject[] buyPanels, float sellBuffer, float supplyDemandIndex, float money, List<Dictionary<string, int>> Loans) {
     float propertyValues = TotalPropertyValue(buyPanels, sellBuffer, supplyDemandIndex);
     float investmentsValues = TotalInvestments();
     float currentCashNonLoaned = money;

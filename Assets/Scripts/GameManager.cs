@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
   public Bank bank;
+  public PropertyPanel propertyPanel;
 
   public Text[] tenancyTexts;
 
@@ -14,7 +15,7 @@ public class GameManager : MonoBehaviour {
 
   public int rent, score;
   public int cardsLeft, cardsLeftMax;
-  public int year, month, week, weeksPerMinute, maxWeeksPerMinute = 0;
+  public int year = 0, month = 1, week = 1, weeksPerMinute, maxWeeksPerMinute = 0;
   public int networth, addMoneyAmnt;
   public int nextUpgrade = 5;
 
@@ -57,19 +58,20 @@ public class GameManager : MonoBehaviour {
 
   public Dictionary<string, int> deductions = new();
   public Dictionary<string, float> GameStats = new() {
-      { "TotalPropertiesOwned", 0 },
-      { "TotalMoneySpent", 0 },
-      { "TotalPropertiesSold", 0 },
-      { "MoneySpentOnUpgrades", 0 },
-      { "TotalPassedProperties", 0 },
-      { "TotalUpgrades", 0 },
-      { "MostExpensiveProperty", 0 },
-      { "MostExpensivePurchased", 0 },
-      { "HighestRental", 0 },
-      { "TotalNumberTenants", 0 },
-      { "TotalMonthsStayed", 0 },
-      { "HighestNetworth", 0 },
-      { "MostAmountOfMoney", 0 }
+    { "TotalPropertiesOwned", 0 },
+    { "TotalMoneySpent", 0 },
+    { "TotalPropertiesSold", 0 },
+    { "TotalValueOfPropertiesSold", 0 },
+    { "MoneySpentOnUpgrades", 0 },
+    { "TotalPassedProperties", 0 },
+    { "TotalUpgrades", 0 },
+    { "MostExpensiveProperty", 0 },
+    { "MostExpensivePurchased", 0 },
+    { "HighestRental", 0 },
+    { "TotalNumberTenants", 0 },
+    { "TotalMonthsStayed", 0 },
+    { "HighestNetworth", 0 },
+    { "MostAmountOfMoney", 0 }
   };
 
   public Transform CardPile;
@@ -95,11 +97,12 @@ public class GameManager : MonoBehaviour {
       managersForHire.Add(newManager);
     }
 
-    NextWeek();
+    // NextWeek();
+    CheckPile();
     InvokeRepeating(nameof(RepeatingWeeks), 0, (60 - weeksPerMinute) * timeBuffer);
     InvokeRepeating(nameof(UpdateNetworth), 0, 0.5f);
   }
-  public void UpdateNetworth () {
+  public void UpdateNetworth() {
     float networth = Calculate.NetWorth(buyPanels, sellBuffer, supplyDemandIndex, bank.money, bank.Loans);
     netWorthText.text = $"NetWorth: ${networth:#,##0}";
 
@@ -172,29 +175,47 @@ public class GameManager : MonoBehaviour {
     //Start the next week
     week++;
 
-    if(week == 5) {
-      month++;
-
-      //Add random power usage
-      foreach(GameObject panel in buyPanels) {
-        if(panel.transform.childCount > 1) {
-          Card c = panel.transform.GetChild(1).GetComponent<Card>();
-
-          if(c.tenants) c.powerUse = Random.Range(150, 450);
+    foreach(GameObject panel in buyPanels) {
+      if(panel.transform.childCount > 1) {
+        Card c = panel.transform.GetChild(1).GetComponent<Card>();
+        //Add random water usage
+        if(c.tenants) c.waterUsage += Random.Range(15, Random.Range(25, 45));
+        
+        // Check renovations
+        if(c.underRenovation) {
+          if(c.renovationTime == 1) {
+            c.underRenovation = false;
+            c.baseRent = c.newRent;
+            c.newRent = 0;
+            c.UpdateRent();
+          } else {
+            c.renovationTime--;
+            c.UpdateRenoTime();
+          }
         }
       }
+    }
 
+    if(week == 5) {
+      month++;
       week = 1;
     }
 
     if(month == 13) {
       year++;
-      month = 0;
-    }
+      month = 1;
 
-    if(year == 50) {
-      CalculateScore();
-      gameOverPanel.SetActive(true);
+      // Charge water rates
+      int waterCost = 0;
+      foreach(GameObject panel in buyPanels) {
+        if(panel.transform.childCount > 1) {
+          Card c = panel.transform.GetChild(1).GetComponent<Card>();
+          waterCost += propertyPanel.GetWaterCost(c.waterUsage);
+          c.waterUsage = 0;
+        }
+
+      }
+      if(waterCost > 0) bank.AddMoney(-waterCost, $"Water Rates Payment");
     }
 
     //Every 5 years, you'll gain 1 extra card per week!
@@ -206,11 +227,16 @@ public class GameManager : MonoBehaviour {
     GameStats["NetWorth"] = networth;
     GameStats["Money"] = bank.money;
 
-    yearsText.text = $"W{week} : M{month} : Y{year}";
+    yearsText.text = $"Week {week} - {month}/{1980+year}";
 
     bank.TakeRepayments();
     CheckTenantTerms(); //Checks term amount and deal rent payments
     PayHiredManagers(); // Pay managers
+
+    if(year == 50) {
+      CalculateScore();
+      gameOverPanel.SetActive(true);
+    }
 
     cardsLeft = cardsLeftMax;
     CheckPile();
@@ -332,6 +358,7 @@ public class GameManager : MonoBehaviour {
           continue;
         } else {
           bank.AddMoney(c.rent, "Rent Income");
+          bank.UpdatePropertyIncomes(propertySlot, c.rent);
         }
       }
     }
@@ -406,21 +433,19 @@ public class GameManager : MonoBehaviour {
     finalScoreText.text = $"Score: {score:#,##0}";
 
     primaryStatsText.text =
-      $"Properties Owned: {GameStats["TotalPropertiesOwned"]} \n " +
-      $"Proprties Sold: {GameStats["TotalPropertiesSold"]} \n " +
-      $"Properties Skipped: {GameStats["TotalPassedProperties"]} \n\n" +
-      $"Total Spend On Upgrades: {GameStats["MoneySpentOnUpgrades"]:#,##0} \n" +
-      $"Total Upgrades Purchased: {GameStats["TotalUpgrades"]}" +
-      $"Total Money Spent: {GameStats["TotalMoneySpent"]:#,##0}";
+      $"Properties Owned\n{GameStats["TotalPropertiesOwned"]}\n\n" +
+      $"Proprties Sold\n{GameStats["TotalPropertiesSold"]} (${GameStats["TotalValueOfPropertiesSold"]})\n\n" +
+      $"Properties Skipped\n{GameStats["TotalPassedProperties"]}\n\n" +
+      $"Total Upgrades Purchased\n{GameStats["TotalUpgrades"]} (${GameStats["MoneySpentOnUpgrades"]:#,##0})\n\n" +
+      $"Total Money Spent\n${GameStats["TotalMoneySpent"]:#,##0}";
 
     otherStatsText.text =
-      $"Most Expensive Property Owned: {GameStats["MostExpensiveProperty"]:#,##0} \n" +
-      $"Most Expensive Property Purchased: {GameStats["MostExpensivePurchased"]:#,##0} \n" +
-      $"Highest Rental Cost: {GameStats["HighestRental"]:#,##0} \n" +
-      $"Number Of Tenants Housed: {GameStats["TotalNumberTenants"]} \n" +
-      $"Combined Months Tenants Have Leased: {GameStats["TotalMonthsStayed"]} \n\n" +
-      $"Highest Networth Obtained: {GameStats["HighestNetworth"]:#,##0} \n" +
-      $"Most Amount Of Money Had: {GameStats["MostAmountOfMoney"]:#,##0}";
+      $"Most Expensive Property Owned\n${GameStats["MostExpensiveProperty"]:#,##0}\n\n" +
+      $"Most Expensive Property Purchased\n${GameStats["MostExpensivePurchased"]:#,##0}\n\n" +
+      $"Highest Rental Cost\n${GameStats["HighestRental"]:#,##0}\n\n" +
+      $"Number Of Tenants Housed\n{GameStats["TotalNumberTenants"]} (over {GameStats["TotalMonthsStayed"]} months)\n\n" +
+      $"Highest Networth Obtained\n${GameStats["HighestNetworth"]:#,##0}\n\n" +
+      $"Most Amount Of Money Had\n${GameStats["MostAmountOfMoney"]:#,##0}";
 
     PlayerPrefs.SetFloat("UnclaimedPoints", score);
   }

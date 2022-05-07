@@ -40,6 +40,8 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         if(gameManager.bank.money < c.cost || transform.childCount == 2) return;
 
         gameManager.bank.AddMoney(-c.cost, "Property Purchase");
+        gameManager.GameStats["TotalMoneySpent"] += c.cost;
+
         c.purchased = true;
 
         GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().sprite = gameManager.exclamation;
@@ -51,7 +53,6 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         if(c.rent > gameManager.GameStats["HighestRental"]) gameManager.GameStats["HighestRental"] = c.rent;
 
         gameManager.GameStats["TotalPropertiesOwned"]++;
-        gameManager.GameStats["TotalMoneySpent"] += c.cost;
 
         //Generate a new card if possible
         gameManager.CheckPile();

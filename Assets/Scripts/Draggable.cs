@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler {
 
@@ -15,11 +16,10 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     if(gameManager.sounds) gameManager.ambientSource.PlayOneShot(gameManager.pickUpCard);
 
     parentToReturnTo = transform.parent;
-
-    if(parentToReturnTo.tag != "CardPile") { //If the card was taken from a property slot
-                                             //Reset the open panel icon
-      parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<UnityEngine.UI.Image>().sprite = gameManager.normal;
-      parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<UnityEngine.UI.Image>().color = Color.white;
+    if(!parentToReturnTo.CompareTag("CardPile")) { //If the card was taken from a property slot
+      //Reset the open panel icon
+      parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<Image>().sprite = gameManager.normal;
+      parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<Image>().color = Color.white;
     }
 
     transform.SetParent(transform.parent.parent);
