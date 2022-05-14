@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class Card : MonoBehaviour {
-  public int cost, minCost, maxCost, bondCost;
+  public int cost, purchasePrice = 0, minCost, maxCost, bondCost;
   public int baseRent, rent, rentMin, rentMax;
   public int tenantTerm, tenantTermRemaining, tenantMoveInWeek;
   public int waterUsage = 0;
@@ -11,11 +11,17 @@ public class Card : MonoBehaviour {
   public int newRent;
   public int renovationTime = 0;
 
+  public int listingTime = 0;
+  public int listingBudget = 0;
+  public int totalOffersHad = 0;
+  public int estimatedOffers = 0;
+
   public string assignedManager = "";
 
   public bool purchased;
   public bool tenants = false;
   public bool underRenovation = false;
+  public bool currentlyListed = false;
 
   public GameManager gameManager;
 
@@ -25,6 +31,8 @@ public class Card : MonoBehaviour {
   public Sprite assignedManagerImage;
 
   public Image spriteImage;
+
+  public List<Dictionary<string, int>> offers = new();
 
   public Dictionary<string, float> bonuses = new() {
     { "panel_bonus", 1.00f },

@@ -1,15 +1,19 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class PropertyPanel : MonoBehaviour {
   public GameManager gameManager;
   public GameObject selectedPanel, sellCoverPanel, tenantsCoverPanel, renovationCoverPanel;
+  public GameObject offersPanelContainer, offersPanel, offerObject;
   public GameObject PropertyManagersBoxPanel;
 
   public Slider renovationBudgetSlider;
+  public Slider listingBudgetSlider, listingTimeSlider;
 
-  public Text currentOfferText, tenantText;
+  public Text tenantText;
   public Text propertyDetailsText, renovationCostText, renovationTimeText, rentIncreaseFromRenovationText;
+  public Text listingBudgetText, listingTimeText, listingOffersEstimateText, offersPanelTimeLeftText;
 
   public Button renovateButton, sellButton, findNewTenantButton;
 
@@ -18,9 +22,9 @@ public class PropertyPanel : MonoBehaviour {
   public int currentOffer = 0, activeSlot, renovationBudget;
   public float upgradeRentValueModifier = 0.05f, waterRate = 1.35f;
   public void OpenPropertyPanel(string name) {
-    gameObject.SetActive(!gameObject.activeInHierarchy); // Show the property panel
+    gameObject.SetActive(!gameObject.activeInHierarchy); // Show or hide the property panel
 
-    if(gameObject.activeInHierarchy == false) return;
+    if(!gameObject.activeInHierarchy) return;
 
     GameObject propertySlot = GameObject.Find("PropertySlot_" + name);
     selectedPanel = propertySlot;
@@ -29,6 +33,9 @@ public class PropertyPanel : MonoBehaviour {
     sellCoverPanel.SetActive(false);
     tenantsCoverPanel.SetActive(false);
     renovationCoverPanel.SetActive(false);
+    offersPanelContainer.SetActive(false);
+
+    listingBudgetSlider.maxValue = gameManager.bank.money;
 
     card = (propertySlot.transform.childCount > 1) ? propertySlot.GetComponentInChildren<Card>() : null;
 
@@ -40,7 +47,6 @@ public class PropertyPanel : MonoBehaviour {
       renovateButton.interactable = false;
       renovationBudgetSlider.interactable = false;
 
-      currentOfferText.text = "No property available!";
       sellButton.interactable = false;
 
       tenantText.text = "No property available!";
@@ -55,18 +61,46 @@ public class PropertyPanel : MonoBehaviour {
 
     // Block all the panels if the card is under construction
     if(card.underRenovation) {
-      sellCoverPanel.SetActive(true);
       tenantsCoverPanel.SetActive(true);
+      tenantsCoverPanel.transform.GetChild(0).GetComponent<Text>().text = "Currently renovating..";
+
+      sellCoverPanel.SetActive(true);
+      sellCoverPanel.transform.GetChild(0).GetComponent<Text>().text = "Currently renovating..";
+
       renovationCoverPanel.SetActive(true);
       renovationCoverPanel.transform.GetChild(0).GetComponent<Text>().text = $"Under Renovation\n{card.renovationTime} weeks left..";
+    }
+
+    if(card.currentlyListed) {
+      offersPanelContainer.SetActive(true);
+
+      renovationCoverPanel.SetActive(true);
+      renovationCoverPanel.transform.GetChild(0).GetComponent<Text>().text = "Currently listed on market";
+      tenantsCoverPanel.SetActive(true);
+      tenantsCoverPanel.transform.GetChild(0).GetComponent<Text>().text = "Currently listed on market";
+
+      if(offersPanel.transform.childCount > 0) {
+        foreach(Transform child in offersPanel.transform) {
+          child.GetComponent<DestroySelf>().SelfDestruct();
+        }
+      }
+
+      card.offers.Sort((o1, o2) => o1["expires"].CompareTo(o2["expires"]));
+      offersPanelTimeLeftText.text = $"{card.listingTime} weeks left | {card.offers.Count} offers";
+      foreach(Dictionary<string, int> offer in card.offers) {
+        GameObject newOfferObject = Instantiate(offerObject, offersPanel.transform);
+        newOfferObject.name = "offer_" + offer["key"];
+        newOfferObject.transform.GetChild(0).GetComponent<Text>().text = $"${offer["amount"]:#,##0} (%{CalculateDifference(card.purchasePrice, offer["amount"]):F2})\nExpires in {offer["expires"]} weeks";
+        newOfferObject.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(delegate () { RejectOffer(offer["key"]); });
+        newOfferObject.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(delegate () { AcceptOffer(offer["key"]); });
+      }
     }
 
     // Can we get tenants?
     findNewTenantButton.interactable = !card.tenants;
 
     UpdateRenovationText();
-    TenantsText();
-    SellPropertyText();
+    UpdateTenantsText();
     UpdatePropertyDetailsText();
   }
   public void AssignManager(GameObject newManager) {
@@ -108,7 +142,7 @@ public class PropertyPanel : MonoBehaviour {
     int waterCost = GetWaterCost(card.waterUsage);
 
     propertyDetailsText.text =
-      $"-=Info=-\n\n" + 
+      $"-=Info=-\n\n" +
       $"Value\n${card.cost:#,##0}\n\n" +
       $"Base Rent: ${card.baseRent:#,##0}\n" +
       $"Rent: ${card.rent}\n" +
@@ -144,12 +178,14 @@ public class PropertyPanel : MonoBehaviour {
 
     // Block all the panels
     sellCoverPanel.SetActive(true);
+
     tenantsCoverPanel.SetActive(true);
+    tenantsCoverPanel.transform.GetChild(0).GetComponent<Text>().text = "Currently renovating..";
+
     renovationCoverPanel.SetActive(true);
     renovationCoverPanel.transform.GetChild(0).GetComponent<Text>().text = $"Under Renovation\n{card.renovationTime} weeks left..";
 
     UpdateRenovationText();
-    SellPropertyText();
     UpdatePropertyDetailsText();
 
     gameManager.GameStats["TotalUpgrades"]++;
@@ -158,17 +194,26 @@ public class PropertyPanel : MonoBehaviour {
     if(card.rent > gameManager.GameStats["HighestRental"]) gameManager.GameStats["HighestRental"] = card.rent;
     if(card.cost > gameManager.GameStats["MostExpensiveProperty"]) gameManager.GameStats["MostExpensiveProperty"] = card.cost;
   }
-  public void SellProperty() {
-    gameManager.bank.AddMoney(currentOffer, "Property Sale");
+  public void ListProperty() {
+    int cost = (int)listingBudgetSlider.value;
+    int time = (int)listingTimeSlider.value;
 
-    card.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().sprite = gameManager.normal;
-    card.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().color = Color.white;
+    if(cost > gameManager.bank.money) return;
 
-    gameManager.GameStats["TotalValueOfPropertiesSold"] += currentOffer;
-    card.Destroy();
+    gameManager.bank.AddMoney(-cost, "Property Listing Costs");
+    gameManager.GameStats["TotalMoneySpent"] += cost;
 
-    gameManager.GameStats["TotalPropertiesSold"]++;
-    OpenPropertyPanel("none");
+    card.currentlyListed = true;
+    card.listingTime = time;
+    card.listingBudget = (int)listingBudgetSlider.value;
+    card.estimatedOffers = Mathf.FloorToInt(((int)listingBudgetSlider.value * 1.5f / 10000 * gameManager.supplyDemandIndex) + time * 1.5f);
+    offersPanelTimeLeftText.text = $"{time} weeks left";
+    offersPanelContainer.SetActive(true);
+
+    renovationCoverPanel.SetActive(true);
+    renovationCoverPanel.transform.GetChild(0).GetComponent<Text>().text = "Currently listed on market";
+    tenantsCoverPanel.SetActive(true);
+    tenantsCoverPanel.transform.GetChild(0).GetComponent<Text>().text = "Currently listed on market";
   }
   public void UpdateRenovationText() {
     renovationBudget = (int)renovationBudgetSlider.value;
@@ -179,6 +224,37 @@ public class PropertyPanel : MonoBehaviour {
 
     int renovationRentIncrease = GetRenovationRentIncrease(renovationBudget);
     rentIncreaseFromRenovationText.text = $"Base Rent\n${card.baseRent:#,##0} -> ${card.baseRent + renovationRentIncrease:#,##0}";
+  }
+  public void UpdateListingText() {
+    listingBudgetText.text = $"Budget: ${listingBudgetSlider.value:#,##0}";
+    listingTimeText.text = $"Open for {listingTimeSlider.value} weeks";
+    listingOffersEstimateText.text = $"~{GetNumberOfPotentialOffers((int)listingBudgetSlider.value, (int)listingTimeSlider.value, gameManager.supplyDemandIndex)} offers";
+  }
+  public void UpdateTenantsText() {
+    tenantText.text =
+      $"Current Tenants: {card.tenants} \n\n" +
+      $"Lease Term: {card.tenantTermRemaining}/{card.tenantTerm} Months";
+  }
+  public void AcceptOffer(int key) {
+    Dictionary<string, int> acceptedOffer = card.offers.Find(offer => offer["key"] == key);
+    gameManager.bank.AddMoney(acceptedOffer["amount"], "Property Sale");
+    gameManager.GameStats["TotalPropertiesSold"]++;
+    card.Destroy();
+    OpenPropertyPanel("none");
+    GameObject.Find("OpenPropertyPanel_" + selectedPanel.name[^1]).GetComponent<Image>().sprite = gameManager.normal;
+    GameObject.Find("OpenPropertyPanel_" + selectedPanel.name[^1]).GetComponent<Image>().color = Color.white;
+
+    if(offersPanel.transform.childCount > 0) {
+      foreach(Transform child in offersPanel.transform) {
+        child.GetComponent<DestroySelf>().SelfDestruct();
+      }
+    }
+  }
+  public void RejectOffer(int key) {
+    Dictionary<string, int> rejectedOffer = card.offers.Find(offer => offer["key"] == key);
+    card.offers.Remove(rejectedOffer);
+    Transform item = offersPanel.transform.Find("offer_" + key);
+    item.gameObject.GetComponent<DestroySelf>().SelfDestruct();
   }
   public void FindTenant() {
     card.tenants = true;
@@ -192,10 +268,10 @@ public class PropertyPanel : MonoBehaviour {
 
     findNewTenantButton.interactable = false;
 
-    card.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().sprite = gameManager.normal;
-    card.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().color = Color.white;
+    GameObject.Find("OpenPropertyPanel_" + selectedPanel.name[^1]).GetComponent<Image>().sprite = gameManager.normal;
+    GameObject.Find("OpenPropertyPanel_" + selectedPanel.name[^1]).GetComponent<Image>().color = Color.white;
 
-    TenantsText();
+    UpdateTenantsText();
     UpdatePropertyDetailsText();
 
     gameManager.tenancyTexts[activeSlot - 1].text = card.tenantTerm.ToString();
@@ -204,24 +280,17 @@ public class PropertyPanel : MonoBehaviour {
     return usage > 1000 ? Mathf.FloorToInt(waterRate * (usage - 1000)) : 0;
   }
 
-  void SellPropertyText() {
-    currentOffer = ValueProperty();
-    sellButton.interactable = true;
+  float CalculateDifference(int initialValue, int currentValue) {
+    if(initialValue == currentValue) return 0;
 
-    currentOfferText.text =
-      $"Property Value: {card.cost:#,##0}\n\n" +
-      $"Current Offer: ${currentOffer:#,##0}";
-  }
-  int ValueProperty() {
-    return Mathf.FloorToInt(card.cost * gameManager.supplyDemandIndex);
-  }
-  void TenantsText() {
-    tenantText.text =
-      $"Current Tenants: {card.tenants} \n\n" +
-      $"Lease Term: {card.tenantTermRemaining}/{card.tenantTerm} Months";
+    float difference = currentValue - initialValue;
+    return (difference / initialValue) * 100;
   }
   int GetRenovationTime(int budget) {
     return Mathf.FloorToInt(budget / 5000) + 1;
+  }
+  int GetNumberOfPotentialOffers(int budget, int time, float supplyDemand) {
+    return Mathf.FloorToInt((budget * 1.5f / 10000 * supplyDemand) + time * 1.5f);
   }
   int GetRenovationRentIncrease(int budget) {
     int x = Mathf.FloorToInt(budget / 2500) + 10;

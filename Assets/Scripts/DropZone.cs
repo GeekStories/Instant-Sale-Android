@@ -13,8 +13,6 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
     //Clear the cool border effects on the card when the pointer leaves the card
   }
   public void OnDrop(PointerEventData eventData) {
-    if(gameManager.sounds) gameManager.ambientSource.PlayOneShot(gameManager.placeCardSounds[Random.Range(0, gameManager.placeCardSounds.Length)]);
-
     Draggable d = eventData.pointerDrag.GetComponent<Draggable>();
     Card c = d.GetComponent<Card>();
 
@@ -38,7 +36,7 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
       } else {
         //Property is not owned and was dropped on an open property slot
         if(gameManager.bank.money < c.cost || transform.childCount == 2) return;
-
+        c.purchasePrice = c.cost;
         gameManager.bank.AddMoney(-c.cost, "Property Purchase");
         gameManager.GameStats["TotalMoneySpent"] += c.cost;
 
@@ -49,15 +47,11 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
 
         //Check for highscores
         if(c.cost > gameManager.GameStats["MostExpensivePurchased"]) gameManager.GameStats["MostExpensivePurchased"] = c.cost;
-
         if(c.rent > gameManager.GameStats["HighestRental"]) gameManager.GameStats["HighestRental"] = c.rent;
-
         gameManager.GameStats["TotalPropertiesOwned"]++;
 
         //Generate a new card if possible
         gameManager.CheckPile();
-
-        if(gameManager.sounds) gameManager.ambientSource.PlayOneShot(gameManager.buySellProperty, 0.2f);
       }
 
       //Panel is owned and empty, check if tenants are needed to change the panel options button

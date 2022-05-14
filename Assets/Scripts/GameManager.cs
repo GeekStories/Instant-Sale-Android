@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour {
   public Text[] tenancyTexts;
 
   public Text netWorthText, rawIncomeText;
-  public Text yearsText, weeksPerSecondText, supplyDemandText, weeksLeft;
+  public Text weekText, monthYearText, weeksPerSecondText, supplyDemandText, weeksLeft;
   public Text primaryStatsText, otherStatsText, finalScoreText;
   public Text cardsLeftText;
 
@@ -38,23 +38,12 @@ public class GameManager : MonoBehaviour {
   public GameObject selectedManager;
   public GameObject selectedHiredManager;
 
-  public AudioClip[] backgroundMusic;
-  public AudioClip[] upgradeSounds;
-  public AudioClip[] placeCardSounds;
-
-  public AudioClip pickUpCard;
-  public AudioClip buySellProperty;
-  public AudioClip buttonClick;
-
-  public AudioSource ambientSource;
-  public AudioSource source;
-
   public Image selectedHiredManagerIcon, selectedManagerIcon;
 
   public Sprite defaultManagerSprite;
-  public Sprite musicOn, musicOff, soundOn, soundOff, exclamation, normal;
+  public Sprite exclamation, normal;
 
-  public bool music = false, sounds = false, repeatingWeek = false;
+  public bool repeatingWeek = false;
 
   public Dictionary<string, int> deductions = new();
   public Dictionary<string, float> GameStats = new() {
@@ -81,9 +70,6 @@ public class GameManager : MonoBehaviour {
   public Button musicToggle, soundToggle, fireManagerButton;
 
   private void Start() {
-    source = GetComponent<AudioSource>();
-    BackgroundMusic();
-
     rent = 0;
     cardsLeftMax = 5;
     cardsLeft = cardsLeftMax;
@@ -125,14 +111,6 @@ public class GameManager : MonoBehaviour {
 
     GetComponent<Prestiege>().SetUnclaimedPoints(Mathf.RoundToInt(networth / 10000));
   }
-  public void BackgroundMusic() {
-    CancelInvoke("BackgroundMusic");
-
-    int x = Random.Range(0, 2);
-    if(music) source.PlayOneShot(backgroundMusic[x], 0.1f);
-
-    InvokeRepeating(nameof(BackgroundMusic), backgroundMusic[x].length, backgroundMusic[x].length);
-  }
   public void CheckPile() {
     if(CardPile.childCount > 0) {
       //Are there any cards currently in the pile?
@@ -170,8 +148,6 @@ public class GameManager : MonoBehaviour {
     cardsLeftText.text = $"{cardsLeft}/{cardsLeftMax}";
   }
   public void NextWeek() {
-    if(sounds) ambientSource.PlayOneShot(buttonClick);
-
     //Start the next week
     week++;
 
@@ -180,7 +156,7 @@ public class GameManager : MonoBehaviour {
         Card c = panel.transform.GetChild(1).GetComponent<Card>();
         //Add random water usage
         if(c.tenants) c.waterUsage += Random.Range(15, Random.Range(25, 45));
-        
+
         // Check renovations
         if(c.underRenovation) {
           if(c.renovationTime == 1) {
@@ -191,6 +167,47 @@ public class GameManager : MonoBehaviour {
           } else {
             c.renovationTime--;
             c.UpdateRenoTime();
+          }
+        }
+
+        // Check if listed
+        if(c.currentlyListed) {
+          c.listingTime--;
+          if(c.listingTime > 0) {
+            List<Dictionary<string, int>> updatedOffers = new();
+
+
+            if(c.totalOffersHad < c.estimatedOffers) {
+              c.offers.ForEach((Dictionary<string, int> offer) => {
+                offer["expires"]--;
+                if(offer["expires"] > 0) updatedOffers.Add(offer);
+              });
+
+              updatedOffers.Sort((o1, o2) => o1["expires"].CompareTo(o2["expires"]));
+
+              int x = Random.Range(0, c.estimatedOffers / 2);
+              c.totalOffersHad += x;
+              for(int i = 0; i < x; i++) {
+                Dictionary<string, int> newOffer = new();
+                newOffer.Add("key", Random.Range(1111, 9999));
+                newOffer.Add("amount", Mathf.FloorToInt((c.cost * supplyDemandIndex) + Random.Range(-5000, 15000)));
+                newOffer.Add("expires", Random.Range(1, c.listingTime));
+                updatedOffers.Add(newOffer);
+              }
+
+              c.offers = updatedOffers;
+            }
+          } else {
+            c.currentlyListed = false;
+            c.listingBudget = 0;
+            c.listingTime = 0;
+            c.totalOffersHad = 0;
+
+            c.offers.Clear();
+
+            foreach(Transform child in propertyPanel.offersPanel.transform) {
+              child.GetComponent<DestroySelf>().SelfDestruct();
+            }
           }
         }
       }
@@ -227,7 +244,8 @@ public class GameManager : MonoBehaviour {
     GameStats["NetWorth"] = networth;
     GameStats["Money"] = bank.money;
 
-    yearsText.text = $"Week {week} - {month}/{1980+year}";
+    weekText.text = $"Week {week}";
+    monthYearText.text = $"{month:00}/{1980 + year}";
 
     bank.TakeRepayments();
     CheckTenantTerms(); //Checks term amount and deal rent payments
@@ -392,27 +410,6 @@ public class GameManager : MonoBehaviour {
 
       CheckPile();
     }
-  }
-  public void ToggleSound() {
-    sounds = !sounds;
-
-    if(sounds) soundToggle.GetComponent<Image>().sprite = soundOn;
-    else soundToggle.GetComponent<Image>().sprite = soundOff;
-
-    if(sounds) ambientSource.PlayOneShot(buttonClick);
-  }
-  public void ToggleMusic() {
-    music = !music;
-
-    if(music) {
-      musicToggle.GetComponent<Image>().sprite = musicOn;
-      BackgroundMusic();
-    } else {
-      musicToggle.GetComponent<Image>().sprite = musicOff;
-      source.Stop();
-    }
-
-    if(sounds) ambientSource.PlayOneShot(buttonClick);
   }
   public void CalculateScore() {
     float score =

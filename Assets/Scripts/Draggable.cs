@@ -13,8 +13,6 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     c = GetComponent<Card>();
   }
   public void OnBeginDrag(PointerEventData eventData) {
-    if(gameManager.sounds) gameManager.ambientSource.PlayOneShot(gameManager.pickUpCard);
-
     parentToReturnTo = transform.parent;
     if(!parentToReturnTo.CompareTag("CardPile")) { //If the card was taken from a property slot
       //Reset the open panel icon
@@ -42,9 +40,5 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     }
 
     GetComponent<CanvasGroup>().blocksRaycasts = true;
-
-    if(gameManager.sounds) {
-      gameManager.ambientSource.PlayOneShot(gameManager.placeCardSounds[Random.Range(0, gameManager.placeCardSounds.Length)]);
-    }
   }
 }

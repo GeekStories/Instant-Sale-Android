@@ -31,11 +31,6 @@ public class BuyPanel : MonoBehaviour {
 
       panelLock.SetActive(false);
 
-      if(gameManager.sounds) {
-        gameManager.ambientSource.PlayOneShot(gameManager.buttonClick);
-        gameManager.ambientSource.PlayOneShot(gameManager.buySellProperty);
-      }
-
       isOwned = true;
     }
   }

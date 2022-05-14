@@ -12,7 +12,7 @@ public class Bank : MonoBehaviour {
   public Dictionary<int, Text> loansAccountText = new();
   public List<Dictionary<string, int>> Loans = new();
 
-  public int creditLimit = 15000;
+  public int creditLimit = 100000;
   public float money = 0, totalDebt = 0;
 
   public Toggle[] termSelectors;
@@ -29,7 +29,13 @@ public class Bank : MonoBehaviour {
   private void Start() {
     currentPanel = loansPanel;
     creditLimitText.text = $"Credit limit: ${creditLimit:#,##0}";
-    AddMoney(100000, "Startup Loan");
+
+    Dictionary<string, int> newLoan = TakeLoan(48, 100000);
+    if(newLoan != null) {
+      Loans.Add(newLoan);
+      UpdateLoanText(newLoan["key"]);
+      totalDebt = Calculate.TotalDebt("totalDebt", Loans);
+    }
   }
   public void ChangePanel(string panelName) {
     switch(panelName) {
@@ -93,11 +99,11 @@ public class Bank : MonoBehaviour {
           //Check the loan hasn't defaulted
           float paymentWeek = loan["paymentWeek"];
 
-           //Check if this week is the payment week
+          //Check if this week is the payment week
           if(gameManager.week == paymentWeek) {
             int repayments = loan["repayments"];
 
-             //Check if the user has defaulted on this loan
+            //Check if the user has defaulted on this loan
             if(repayments > money && amountOwing > money) {
               Loans[index]["defaults"]++; //Add a strike to the defaults and move to the next loan
               continue;
@@ -187,7 +193,7 @@ public class Bank : MonoBehaviour {
   public void UpdateLoanText(int key) {
     Dictionary<string, int> loan = Loans.Find(loan => loan["key"] == key);
 
-    contractsText[key].text = $"Account #{loan["key"]}";
+    contractsText[key].text = $"Account #{key}";
     loansAccountText[key].text =
       $"Payable: ${(loan["total"] - loan["totalPaid"]):#,##0}\n" +
       $"Monthly: ${loan["repayments"]:#,##0} (W{loan["paymentWeek"]})\n" +
@@ -196,52 +202,49 @@ public class Bank : MonoBehaviour {
     defaultTexts[key].text = $"Defaults: {loan["defaults"]}/3";
     debtText.text = $"Total Debt: -${Calculate.TotalDebt("debt", Loans):#,##0}";
   }
-  public void TakeLoan() {
-    int term = GetSelectedToggle();
-    int amnt = (int)loanAmountSlider.value;
+  public Dictionary<string, int> TakeLoan(int term, int amount) {
+    if(amount > creditLimit) return null;
 
-    if(amnt <= creditLimit) {
-      int key = Random.Range(11111, 99999);
+    int key = Random.Range(11111, 99999);
 
-      GameObject newLoanObj = Instantiate(LoanObject, LoanObjectContainer.transform);
-      newLoanObj.name = key.ToString();
+    GameObject newLoanObj = Instantiate(LoanObject, LoanObjectContainer.transform);
+    newLoanObj.name = key.ToString();
+    newLoanObj.transform.GetChild(4).GetComponent<Button>().onClick.AddListener(delegate () { PayLoanFull(key); });
 
-      contractsText[key] = newLoanObj.transform.GetChild(0).GetComponent<Text>();
-      loansAccountText[key] = newLoanObj.transform.GetChild(1).GetComponent<Text>();
-      defaultTexts[key] = newLoanObj.transform.GetChild(3).GetComponent<Text>();
+    contractsText[key] = newLoanObj.transform.GetChild(0).GetComponent<Text>();
+    loansAccountText[key] = newLoanObj.transform.GetChild(1).GetComponent<Text>();
+    defaultTexts[key] = newLoanObj.transform.GetChild(3).GetComponent<Text>();
 
-      float interestRate = GetInterestRate(term);
-      int repayments = CalculatePayments(amnt, interestRate, term);
-      int totalToPay = Mathf.FloorToInt(repayments * term);
-      int paymentStartdate = gameManager.week + gameManager.month + gameManager.year;
+    float interestRate = GetInterestRate(term);
+    int repayments = CalculatePayments(amount, interestRate, term);
+    int totalToPay = Mathf.FloorToInt(repayments * term);
 
-      Dictionary<string, int> loan = new();
-      loan.Add("term", term);
-      loan.Add("principle", amnt);
-      loan.Add("total", totalToPay);
-      loan.Add("totalPaid", 0);
-      loan.Add("defaults", 0);
-      loan.Add("paymentWeek", gameManager.week);
-      loan.Add("issueDate", paymentStartdate);
-      loan.Add("repayments", repayments);
-      loan.Add("key", key);
+    Dictionary<string, int> loan = new();
+    loan.Add("term", term);
+    loan.Add("principle", amount);
+    loan.Add("total", totalToPay);
+    loan.Add("totalPaid", 0);
+    loan.Add("defaults", 0);
+    loan.Add("paymentWeek", gameManager.week);
+    loan.Add("repayments", repayments);
+    loan.Add("key", key);
 
-      Loans.Add(loan);
+    AddMoney(amount, "Loan Deposit");
 
-      newLoanObj.transform.GetChild(4).GetComponent<Button>().onClick.AddListener(delegate () { PayLoanFull(key); });
+    creditLimit -= amount;
+    creditLimitText.text = $"Credit Limit: {creditLimit:#,##0}";
+    loanAmountSlider.maxValue = creditLimit;
 
-      AddMoney(amnt, "Loan Deposit");
-
-      creditLimit -= amnt;
-      creditLimitText.text = $"Credit Limit: {creditLimit:#,##0}";
-      loanAmountSlider.maxValue = creditLimit;
-
+    return loan;
+  }
+  public void HandleTakeLoanButton() {
+    Dictionary<string, int> newLoan = TakeLoan(GetSelectedToggle(), (int)loanAmountSlider.value);
+    if(newLoan != null) {
+      Loans.Add(newLoan);
+      UpdateLoanText(newLoan["key"]);
       totalDebt = Calculate.TotalDebt("totalDebt", Loans);
-
-      UpdateLoanText(key);
     }
   }
- 
   public void PayLoanFull(int key) {
     Dictionary<string, int> loan = Loans.Find(loan => loan["key"] == key);
 
@@ -293,8 +296,8 @@ public class Bank : MonoBehaviour {
     float amountPayable = CalculateAmountPayable((int)loanAmountSlider.value);
     loanTotalText.text =
       $"Total Repayable: ${amountPayable:#,##0}\n" +
-      $"Total Interest: ${amountPayable - loanAmountSlider.value:F2}\n" +
-      $"Monthly Repayments: ${(amountPayable / GetSelectedToggle())} p/m";
+      $"Total Interest: ${(amountPayable - loanAmountSlider.value):#,##0}\n" +
+      $"Monthly Repayments: ${(amountPayable / GetSelectedToggle()):#,##0} p/m";
   }
   public void UpdatePropertyIncomes(int panel, int amount) {
     propertyIncomes[panel] += amount;
@@ -304,6 +307,6 @@ public class Bank : MonoBehaviour {
     foreach(Toggle t in termSelectors)
       if(t.isOn) return int.Parse(t.name); //returns selected toggle
 
-    return 99;
+    return 12;
   }
 }
