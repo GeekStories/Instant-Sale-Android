@@ -27,7 +27,7 @@ public class Card : MonoBehaviour {
 
   public Text cardText;
 
-  public Sprite[] houses;
+  public Sprite houseImage;
   public Sprite assignedManagerImage;
 
   public Image spriteImage;
@@ -43,9 +43,6 @@ public class Card : MonoBehaviour {
     gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
 
     cardText = transform.GetChild(1).GetComponent<Text>();
-
-    spriteImage = transform.GetChild(2).GetComponent<Image>();
-    spriteImage.sprite = houses[Random.Range(0, houses.Length - 1)];
 
     cost = Mathf.FloorToInt(Random.Range(minCost, maxCost) * gameManager.supplyDemandIndex);
     baseRent = Random.Range(rentMin, rentMax);

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +14,7 @@ public class Bank : MonoBehaviour {
   public List<Dictionary<string, int>> Loans = new();
 
   public int creditLimit = 100000;
-  public float money = 0, totalDebt = 0;
+  public float money = 25000, totalDebt = 0;
 
   public Toggle[] termSelectors;
   public Slider loanAmountSlider;
@@ -26,11 +27,15 @@ public class Bank : MonoBehaviour {
   public GameObject loansPanel, stocksPanel, savingsPanel, balanceSheetPanel, transactionsPanel, transactionsTable;
   private GameObject currentPanel;
 
+  public int CountFPS = 30;
+  public float Duration = 0.5f;
+
+  private Coroutine CountingCoroutine;
+
   private void Start() {
     currentPanel = loansPanel;
     creditLimitText.text = $"Credit limit: ${creditLimit:#,##0}";
-
-    Dictionary<string, int> newLoan = TakeLoan(48, 100000);
+    Dictionary<string, int> newLoan = TakeLoan(48, 50000);
     if(newLoan != null) {
       Loans.Add(newLoan);
       UpdateLoanText(newLoan["key"]);
@@ -69,10 +74,19 @@ public class Bank : MonoBehaviour {
     currentPanel.SetActive(true);
   }
   public void AddMoney(float amount, string purchaseType) {
-    money += amount;
-    moneyText.text = $"${money:#,##0}";
 
-    GameObject newTransaction = Instantiate(transactionObject, transactionsTable.transform);
+    if(CountingCoroutine != null) StopCoroutine(CountingCoroutine);
+
+    CountingCoroutine = StartCoroutine(CountText(money + amount));
+    money += amount;
+
+    GameObject newTransaction = null;
+    if(transactionsTable.transform.childCount == 20) {
+      newTransaction = transactionsTable.transform.GetChild(19).gameObject;
+    } else {
+      newTransaction = Instantiate(transactionObject, transactionsTable.transform);
+    }
+
     newTransaction.transform.SetSiblingIndex(0);
     newTransaction.transform.GetChild(0).GetComponent<Text>().text = $"{(amount > 0 ? $"${amount:#,##0}" : $"${(amount * -1):#,##0}")}";
     newTransaction.transform.GetChild(1).GetComponent<Text>().color = amount > 0 ? Color.green : Color.red;
@@ -82,6 +96,39 @@ public class Bank : MonoBehaviour {
     newTransaction.transform.GetChild(4).GetComponent<Text>().text = $"W{gameManager.week}:M{gameManager.month}:Y{gameManager.year}";
 
     if(money > gameManager.GameStats["MostAmountOfMoney"]) gameManager.GameStats["MostAmountOfMoney"] = money;
+  }
+  private IEnumerator CountText(float newValue) {
+    WaitForSeconds Wait = new(1f / CountFPS);
+    float previousValue = money;
+    int stepAmount;
+
+    if(newValue - previousValue < 0) {
+      stepAmount = Mathf.FloorToInt((newValue - previousValue) / (CountFPS * Duration)); // newValue = -20, previousValue = 0. CountFPS = 30, and Duration = 1; (-20- 0) / (30*1) // -0.66667 (ceiltoint)-> 0
+    } else {
+      stepAmount = Mathf.CeilToInt((newValue - previousValue) / (CountFPS * Duration)); // newValue = 20, previousValue = 0. CountFPS = 30, and Duration = 1; (20- 0) / (30*1) // 0.66667 (floortoint)-> 0
+    }
+
+    if(previousValue < newValue) {
+      while(previousValue < newValue) {
+        previousValue += stepAmount;
+        if(previousValue > newValue) {
+          previousValue = newValue;
+        }
+
+        moneyText.text = $"${previousValue:#,##0}";
+        yield return Wait;
+      }
+    } else {
+      while(previousValue > newValue) {
+        previousValue += stepAmount; // (-20 - 0) / (30 * 1) = -0.66667 -> -1              0 + -1 = -1
+        if(previousValue < newValue) {
+          previousValue = newValue;
+        }
+
+        moneyText.text = $"${previousValue:#,##0}";
+        yield return Wait;
+      }
+    }
   }
   public void TakeRepayments() {
     if(Loans.Count > 0) {

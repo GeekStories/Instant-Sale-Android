@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour {
 
   public Sprite defaultManagerSprite;
   public Sprite exclamation, normal;
+  public Sprite[] houseImages;
 
   public bool repeatingWeek = false;
 
@@ -137,12 +138,13 @@ public class GameManager : MonoBehaviour {
       return;
     }
 
-    GameObject x = Instantiate(card, CardPile);
+    GameObject newCard = Instantiate(card, CardPile);
     int newWeeksLeft = Random.Range(3, 10);
-    x.GetComponent<Card>().weeksLeft = newWeeksLeft;
+    newCard.GetComponent<Card>().weeksLeft = newWeeksLeft;
     weeksLeft.text = $"Expires in {newWeeksLeft} weeks";
 
-    x.GetComponent<Card>().assignedManagerImage = defaultManagerSprite;
+    newCard.transform.GetChild(2).GetComponent<Image>().sprite = houseImages[Random.Range(0, houseImages.Length - 1)];
+    newCard.GetComponent<Card>().assignedManagerImage = defaultManagerSprite;
 
     cardsLeft--;
     cardsLeftText.text = $"{cardsLeft}/{cardsLeftMax}";
@@ -349,10 +351,22 @@ public class GameManager : MonoBehaviour {
     foreach(GameObject panel in buyPanels) {
       if(panel.transform.childCount > 1) {
         Card c = panel.transform.GetChild(1).GetComponent<Card>();
-        int propertySlot = int.Parse(panel.name[^1..]) - 1; // Grabs the last character (the panel number)
+        string number = panel.name[^2..]; // Last 2 digits of panel name ie 12 or _3
+        int propertySlot = int.Parse(number.Replace("_", "")) - 1;
 
         if(!c.tenants) {
           tenancyTexts[propertySlot].text = "";
+
+          // Assigned manager AND no current lease, auto lease!!
+          if(c.assignedManager != "") {
+            propertyPanel.card = c;
+            propertyPanel.GenerateTenancy();
+            propertyPanel.card = null;
+
+            GameObject.Find($"OpenPropertyPanel_{propertySlot + 1}").GetComponent<Image>().sprite = normal;
+            GameObject.Find($"OpenPropertyPanel_{propertySlot + 1}").GetComponent<Image>().color = Color.white;
+            tenancyTexts[propertySlot].text = c.tenantTerm.ToString();
+          }
           continue;
         }
 
