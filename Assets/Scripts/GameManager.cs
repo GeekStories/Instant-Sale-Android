@@ -97,16 +97,14 @@ public class GameManager : MonoBehaviour {
 
     float inOut = Calculate.RawIncome(buyPanels, bank.Loans, hiredManagers);
 
-    if(inOut == 0) {
-      rawIncomeText.color = Color.grey;
-      rawIncomeText.text = $"(${inOut:#,##0})";
-    }
-
     if(inOut > 0) {
       rawIncomeText.color = Color.green;
       rawIncomeText.text = $"(+${inOut:#,##0})";
-    } else {
+    } else if (inOut < 0) {
       rawIncomeText.color = Color.red;
+      rawIncomeText.text = $"(${inOut:#,##0})";
+    } else {
+      rawIncomeText.color = Color.gray;
       rawIncomeText.text = $"(${inOut:#,##0})";
     }
 

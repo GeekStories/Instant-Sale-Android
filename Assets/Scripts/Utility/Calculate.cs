@@ -48,6 +48,7 @@ public static class Calculate {
 
     //Deduct all the loan repayments
     foreach(Dictionary<string, int> loan in Loans) {
+      if(loan["totalPaid"] == loan["total"]) continue;
       x -= loan["repayments"] / 4;
     }
 

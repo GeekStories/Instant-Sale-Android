@@ -80,7 +80,7 @@ public class Bank : MonoBehaviour {
     CountingCoroutine = StartCoroutine(CountText(money + amount));
     money += amount;
 
-    GameObject newTransaction = null;
+    GameObject newTransaction;
     if(transactionsTable.transform.childCount == 20) {
       newTransaction = transactionsTable.transform.GetChild(19).gameObject;
     } else {
@@ -160,9 +160,11 @@ public class Bank : MonoBehaviour {
             if(repayments >= amountOwing) {
               //This payment will put us in credit{
               AddMoney(-amountOwing, "Final Loan Payment"); //Pay the final difference
+              Loans[index]["totalPaid"] = loan["total"];
 
-              GameObject.Find(i.ToString()).transform.GetChild(2).gameObject.SetActive(true);
-              GameObject.Find(i.ToString()).transform.GetChild(3).GetComponent<Button>().interactable = false;
+              Transform loanObject = LoanObjectContainer.transform.Find(i.ToString());
+              loanObject.GetChild(2).gameObject.SetActive(true);
+              loanObject.GetChild(4).GetComponent<Button>().interactable = false;
 
               UpdateLoanText(i);
 
@@ -247,7 +249,9 @@ public class Bank : MonoBehaviour {
       $"Term: {loan["term"]}";
 
     defaultTexts[key].text = $"Defaults: {loan["defaults"]}/3";
-    debtText.text = $"Total Debt: -${Calculate.TotalDebt("debt", Loans):#,##0}";
+
+    float totalDebt = Calculate.TotalDebt("debt", Loans);
+    debtText.text = $"Total Debt: ${totalDebt:#,##0}";
   }
   public Dictionary<string, int> TakeLoan(int term, int amount) {
     if(amount > creditLimit) return null;
