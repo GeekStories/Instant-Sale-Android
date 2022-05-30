@@ -22,7 +22,7 @@ public class BuyPanel : MonoBehaviour {
   }
 
   public void Unlock() {
-    if(gameManager.bank.money >= cost) {
+    if(gameManager.bank.money >= cost && gameManager.actionPoints > 0) {
       gameManager.bank.AddMoney(-cost, "Land Purchase");
       gameManager.GameStats["TotalMoneySpent"] += cost;
 
@@ -30,7 +30,7 @@ public class BuyPanel : MonoBehaviour {
       GetComponent<GridLayoutGroup>().enabled = true;
 
       panelLock.SetActive(false);
-
+      gameManager.UpdateActionPoints(-1);
       isOwned = true;
     }
   }

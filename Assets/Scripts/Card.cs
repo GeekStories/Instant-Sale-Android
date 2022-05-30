@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class Card : MonoBehaviour {
-  public int cost, purchasePrice = 0, minCost, maxCost, bondCost;
+  public int cost, purchasePrice = 0, bondCost;
   public int baseRent, rent, rentMin, rentMax;
   public int tenantTerm, tenantTermRemaining, tenantMoveInWeek;
   public int waterUsage = 0;
@@ -41,12 +41,8 @@ public class Card : MonoBehaviour {
 
   private void Start() {
     gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
-
     cardText = transform.GetChild(1).GetComponent<Text>();
-
-    cost = Mathf.FloorToInt(Random.Range(minCost, maxCost) * gameManager.supplyDemandIndex);
     baseRent = Random.Range(rentMin, rentMax);
-
     UpdateRent();
   }
   public void Destroy() {
@@ -58,6 +54,7 @@ public class Card : MonoBehaviour {
   }
   public void UpdateRent() {
     rent = baseRent;
+
     //Calculate all the bonuses into the rent
     foreach(KeyValuePair<string, float> bonus in bonuses) {
       rent += Mathf.FloorToInt((baseRent * bonus.Value) - baseRent);

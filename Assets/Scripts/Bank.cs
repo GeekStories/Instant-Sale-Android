@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class Bank : MonoBehaviour {
   public GameManager gameManager;
@@ -19,7 +20,8 @@ public class Bank : MonoBehaviour {
   public Toggle[] termSelectors;
   public Slider loanAmountSlider;
 
-  public Text moneyText, creditLimitText, loanAmountText, loanTotalText, debtText;
+  public Text creditLimitText, loanAmountText, loanTotalText;
+  public TextMeshProUGUI moneyText, debtText;
   public Text[] propertyIncomeTexts;
   public int[] propertyIncomes;
 
@@ -74,7 +76,6 @@ public class Bank : MonoBehaviour {
     currentPanel.SetActive(true);
   }
   public void AddMoney(float amount, string purchaseType) {
-
     if(CountingCoroutine != null) StopCoroutine(CountingCoroutine);
 
     CountingCoroutine = StartCoroutine(CountText(money + amount));
@@ -95,7 +96,14 @@ public class Bank : MonoBehaviour {
     newTransaction.transform.GetChild(3).GetComponent<Text>().text = $"{purchaseType}";
     newTransaction.transform.GetChild(4).GetComponent<Text>().text = $"W{gameManager.week}:M{gameManager.month}:Y{gameManager.year}";
 
-    if(money > gameManager.GameStats["MostAmountOfMoney"]) gameManager.GameStats["MostAmountOfMoney"] = money;
+    if(money > gameManager.GameStats["MostAmountOfMoney"]) {
+      gameManager.GameStats["MostAmountOfMoney"] = money;
+
+      if(money > 150000) {
+        gameManager.cardMinCost = Mathf.FloorToInt(money / 2);
+        gameManager.cardMaxCost = Mathf.FloorToInt(money);
+      }
+    }
   }
   private IEnumerator CountText(float newValue) {
     WaitForSeconds Wait = new(1f / CountFPS);
@@ -115,7 +123,7 @@ public class Bank : MonoBehaviour {
           previousValue = newValue;
         }
 
-        moneyText.text = $"${previousValue:#,##0}";
+        moneyText.text = $"{previousValue:#,##0}";
         yield return Wait;
       }
     } else {
@@ -125,7 +133,7 @@ public class Bank : MonoBehaviour {
           previousValue = newValue;
         }
 
-        moneyText.text = $"${previousValue:#,##0}";
+        moneyText.text = $"{previousValue:#,##0}";
         yield return Wait;
       }
     }
@@ -251,7 +259,7 @@ public class Bank : MonoBehaviour {
     defaultTexts[key].text = $"Defaults: {loan["defaults"]}/3";
 
     float totalDebt = Calculate.TotalDebt("debt", Loans);
-    debtText.text = $"Total Debt: ${totalDebt:#,##0}";
+    debtText.text = $"${totalDebt:#,##0}";
   }
   public Dictionary<string, int> TakeLoan(int term, int amount) {
     if(amount > creditLimit) return null;
@@ -281,6 +289,7 @@ public class Bank : MonoBehaviour {
     loan.Add("key", key);
 
     AddMoney(amount, "Loan Deposit");
+    
 
     creditLimit -= amount;
     creditLimitText.text = $"Credit Limit: {creditLimit:#,##0}";
@@ -290,10 +299,11 @@ public class Bank : MonoBehaviour {
   }
   public void HandleTakeLoanButton() {
     Dictionary<string, int> newLoan = TakeLoan(GetSelectedToggle(), (int)loanAmountSlider.value);
-    if(newLoan != null) {
+    if(gameManager.actionPoints > 0 || newLoan != null) {
       Loans.Add(newLoan);
       UpdateLoanText(newLoan["key"]);
       totalDebt = Calculate.TotalDebt("totalDebt", Loans);
+      gameManager.UpdateActionPoints(-1);
     }
   }
   public void PayLoanFull(int key) {
@@ -301,7 +311,7 @@ public class Bank : MonoBehaviour {
 
     int amountOwing = loan["total"] - loan["totalPaid"];
 
-    if(money >= amountOwing) {
+    if(money >= amountOwing && gameManager.actionPoints > 0) {
       AddMoney(-amountOwing, "Final Loan Payment");
 
       creditLimit += Mathf.FloorToInt(amountOwing);
@@ -319,6 +329,7 @@ public class Bank : MonoBehaviour {
       int loanIndex = Loans.FindIndex(loan => loan["key"] == key);
       Loans[loanIndex] = loan;
       UpdateLoanText(key);
+      gameManager.UpdateActionPoints(-1);
     }
 
     return;

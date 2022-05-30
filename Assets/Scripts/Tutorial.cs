@@ -3,15 +3,14 @@ using UnityEngine.UI;
 
 public class Tutorial : MonoBehaviour {
   public Image currentImage;
-
+  public ScrollRect navigationButtonsScrollContainer;
   public Sprite[] tutorialImages;
-
-  private int section = 0;
 
   private void Start() {
     currentImage.sprite = tutorialImages[0];
   }
   public void OpenSection(int section) {
+    navigationButtonsScrollContainer.verticalNormalizedPosition = 1;
     currentImage.sprite = tutorialImages[section];
   }
   public void OpenCloseTutorial() {

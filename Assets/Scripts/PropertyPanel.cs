@@ -147,18 +147,15 @@ public class PropertyPanel : MonoBehaviour {
     int waterCost = GetWaterCost(card.waterUsage);
 
     propertyDetailsText.text =
-      $"-=Info=-\n" +
-      $"Value: ${card.cost:#,##0}\n" +
-      $"Rent: ${card.rent}\n" +
-      $"Base Rent: ${card.baseRent:#,##0}\n\n" +
-      $"-=Bonuses=-\n" +
-      $"Slot: {slot}\n" +
-      $"Manager: {managerBonus}\n\n" +
-      $"-=Misc=-\n" +
-      $"Water Usage\n{card.waterUsage:#,##0} L (${waterCost})";
+      $"Value\n${card.cost:#,##0}\n\n" +
+      $"Rent\n${card.rent}\n\n" +
+      $"Base Rent\n${card.baseRent:#,##0}\n\n" +
+      $"Slot\n{slot}\n\n" +
+      $"Manager\n{managerBonus}\n\n" +
+      $"Water Usage\n{card.waterUsage:#,##0}L (${waterCost})";
   }
   public void PurchaseUpgrade() {
-    if(gameManager.bank.money < renovationBudget || card.tenants) return;
+    if(gameManager.bank.money < renovationBudget || card.tenants || gameManager.actionPoints == 0) return;
 
     // Deduct the money (Check for new high score)
     gameManager.bank.AddMoney(-renovationBudget, "Property Renovation");
@@ -189,6 +186,7 @@ public class PropertyPanel : MonoBehaviour {
     UpdatePropertyDetailsText();
 
     gameManager.GameStats["TotalUpgrades"]++;
+    gameManager.UpdateActionPoints(-1);
 
     // Check for high score
     if(card.rent > gameManager.GameStats["HighestRental"]) gameManager.GameStats["HighestRental"] = card.rent;
@@ -198,7 +196,7 @@ public class PropertyPanel : MonoBehaviour {
     int cost = (int)listingBudgetSlider.value;
     int time = (int)listingTimeSlider.value;
 
-    if(cost > gameManager.bank.money) return;
+    if(cost > gameManager.bank.money || gameManager.actionPoints == 0) return;
 
     gameManager.bank.AddMoney(-cost, "Property Listing Costs");
     gameManager.GameStats["TotalMoneySpent"] += cost;
@@ -214,6 +212,8 @@ public class PropertyPanel : MonoBehaviour {
     renovationCoverPanel.transform.GetChild(0).GetComponent<Text>().text = "Currently listed on market";
     tenantsCoverPanel.SetActive(true);
     tenantsCoverPanel.transform.GetChild(0).GetComponent<Text>().text = "Currently listed on market";
+
+    gameManager.UpdateActionPoints(-1);
   }
   public void UpdateRenovationText() {
     renovationBudget = (int)renovationBudgetSlider.value;
@@ -238,6 +238,8 @@ public class PropertyPanel : MonoBehaviour {
       $"Bond: ${card.bondCost:#,##0}";
   }
   public void AcceptOffer(int key) {
+    if(gameManager.actionPoints == 0) return;
+
     Dictionary<string, int> acceptedOffer = card.offers.Find(offer => offer["key"] == key);
     gameManager.bank.AddMoney(acceptedOffer["amount"], "Property Sale");
     gameManager.GameStats["TotalPropertiesSold"]++;
@@ -251,6 +253,8 @@ public class PropertyPanel : MonoBehaviour {
         child.GetComponent<DestroySelf>().SelfDestruct();
       }
     }
+
+    gameManager.UpdateActionPoints(-1);
   }
   public void RejectOffer(int key) {
     Dictionary<string, int> rejectedOffer = card.offers.Find(offer => offer["key"] == key);
@@ -259,6 +263,8 @@ public class PropertyPanel : MonoBehaviour {
     item.gameObject.GetComponent<DestroySelf>().SelfDestruct();
   }
   public void FindTenant() {
+    if(gameManager.actionPoints == 0) return;
+
     GenerateTenancy();
 
     findNewTenantButton.interactable = false;
@@ -273,6 +279,7 @@ public class PropertyPanel : MonoBehaviour {
     UpdateTenantsText();
     UpdatePropertyDetailsText();
 
+    gameManager.UpdateActionPoints(-1);
     gameManager.tenancyTexts[activeSlot - 1].text = card.tenantTerm.ToString();
   }
 
@@ -283,7 +290,7 @@ public class PropertyPanel : MonoBehaviour {
     card.tenantMoveInWeek = gameManager.week;
     gameManager.bank.AddMoney(card.rent * 4, "Bond Payment");
     card.bondCost = card.rent * 4;
-    gameManager.bank.AddMoney(card.rent * 2, "Rent in Advance Payment");
+    gameManager.bank.AddMoney(card.rent * 4, "Rent in Advance Payment");
     gameManager.GameStats["TotalNumberTenants"] += Random.Range(1, 5);
   }
   public int GetWaterCost(int usage) {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,16 +9,21 @@ public class GameManager : MonoBehaviour {
 
   public Text[] tenancyTexts;
 
-  public Text netWorthText, rawIncomeText;
-  public Text weekText, monthYearText, weeksPerSecondText, supplyDemandText, weeksLeft;
+  public Text weeksLeft;
+  public TextMeshProUGUI netWorthText, rawIncomeText;
+  public TextMeshProUGUI actionPointsText;
+  public TextMeshProUGUI weeksPerSecondText, weekText, monthYearText, supplyDemandText;
   public Text primaryStatsText, otherStatsText, finalScoreText;
   public Text cardsLeftText;
 
   public int rent, score;
   public int cardsLeft, cardsLeftMax;
+  public int actionPointsMax, actionPoints;
   public int year = 0, month = 1, week = 1, weeksPerMinute, maxWeeksPerMinute = 0;
   public int networth, addMoneyAmnt;
   public int nextUpgrade = 5;
+
+  public int cardMinCost, cardMaxCost;
 
   public float timeBuffer = 0.75f;
   public float sellBuffer = 0.25f;
@@ -84,6 +90,7 @@ public class GameManager : MonoBehaviour {
       managersForHire.Add(newManager);
     }
 
+    UpdateActionPoints(actionPointsMax);
     // NextWeek();
     CheckPile();
     InvokeRepeating(nameof(RepeatingWeeks), 0, (60 - weeksPerMinute) * timeBuffer);
@@ -99,13 +106,13 @@ public class GameManager : MonoBehaviour {
 
     if(inOut > 0) {
       rawIncomeText.color = Color.green;
-      rawIncomeText.text = $"(+${inOut:#,##0})";
-    } else if (inOut < 0) {
+      rawIncomeText.text = $"+${inOut:#,##0}";
+    } else if(inOut < 0) {
       rawIncomeText.color = Color.red;
-      rawIncomeText.text = $"(${inOut:#,##0})";
+      rawIncomeText.text = $"${inOut:#,##0}";
     } else {
       rawIncomeText.color = Color.gray;
-      rawIncomeText.text = $"(${inOut:#,##0})";
+      rawIncomeText.text = $"${inOut:#,##0}";
     }
 
     GetComponent<Prestiege>().SetUnclaimedPoints(Mathf.RoundToInt(networth / 10000));
@@ -138,8 +145,10 @@ public class GameManager : MonoBehaviour {
 
     GameObject newCard = Instantiate(card, CardPile);
     int newWeeksLeft = Random.Range(3, 10);
+    newCard.GetComponent<Card>().cost = Mathf.FloorToInt(Random.Range(cardMinCost, cardMaxCost) * supplyDemandIndex);
     newCard.GetComponent<Card>().weeksLeft = newWeeksLeft;
     weeksLeft.text = $"Expires in {newWeeksLeft} weeks";
+
 
     newCard.transform.GetChild(2).GetComponent<Image>().sprite = houseImages[Random.Range(0, houseImages.Length - 1)];
     newCard.GetComponent<Card>().assignedManagerImage = defaultManagerSprite;
@@ -216,6 +225,10 @@ public class GameManager : MonoBehaviour {
     if(week == 5) {
       month++;
       week = 1;
+
+      bank.AddMoney(848, "Job Payment");
+      bank.AddMoney(-300, "Couch Rent");
+      bank.AddMoney(-270, "Living Costs");
     }
 
     if(month == 13) {
@@ -244,7 +257,7 @@ public class GameManager : MonoBehaviour {
     GameStats["NetWorth"] = networth;
     GameStats["Money"] = bank.money;
 
-    weekText.text = $"Week {week}";
+    weekText.text = $"W{week}";
     monthYearText.text = $"{month:00}/{1980 + year}";
 
     bank.TakeRepayments();
@@ -256,6 +269,9 @@ public class GameManager : MonoBehaviour {
       gameOverPanel.SetActive(true);
     }
 
+    actionPoints = actionPointsMax;
+    actionPointsText.text = $"{actionPoints} / {actionPointsMax}";
+
     cardsLeft = cardsLeftMax;
     CheckPile();
 
@@ -263,6 +279,10 @@ public class GameManager : MonoBehaviour {
     supplyDemandIndex += Random.Range(-0.01f, 0.012f);
     supplyDemandText.text = $"{supplyDemandIndex:F2}";
     cardsLeftText.text = $"{cardsLeft}/{cardsLeftMax}";
+  }
+  public void UpdateActionPoints(int amount) {
+    actionPoints += amount;
+    actionPointsText.text = $"{actionPoints} / {actionPointsMax}";
   }
   public void PayHiredManagers() {
     int totalPayment = 0;
@@ -291,7 +311,7 @@ public class GameManager : MonoBehaviour {
     }
   }
   public void HireManager() {
-    if(!selectedManager || currentManagersPanel.transform.childCount == 36) return;
+    if(!selectedManager || currentManagersPanel.transform.childCount == 36 || actionPoints == 0) return;
 
     Manager hiredManager = selectedManager.GetComponent<Manager>();
 
@@ -314,6 +334,7 @@ public class GameManager : MonoBehaviour {
     duplicateManager.transform.localScale = Vector3.one;
 
     hiredManagers.Add(duplicateManager);
+    UpdateActionPoints(-1);
 
     if(managersForHire.Count == 0) {
       GameObject newManager = GetComponent<GenerateManagers>().GenerateManager(managersForHirePanel, this);
@@ -323,6 +344,8 @@ public class GameManager : MonoBehaviour {
     }
   }
   public void FireManager() {
+    if(actionPoints == 0) return;
+
     // Remove wage from payroll
     deductions.Remove(selectedHiredManager.name);
 
@@ -343,6 +366,7 @@ public class GameManager : MonoBehaviour {
       return;
     }
 
+    UpdateActionPoints(-1);
     SelectManager(hiredManagers[0]);
   }
   public void CheckTenantTerms() {
@@ -369,6 +393,11 @@ public class GameManager : MonoBehaviour {
         }
 
         if(week == c.tenantMoveInWeek) {
+          if(c.tenantTermRemaining > 0) {
+            bank.AddMoney(c.rent, "Rent Income");
+            bank.UpdatePropertyIncomes(propertySlot, c.rent);
+          }
+
           c.tenantTermRemaining--;
           tenancyTexts[propertySlot].text = $"{c.tenantTermRemaining}";
           GameStats["TotalMonthsStayed"]++;
@@ -386,9 +415,6 @@ public class GameManager : MonoBehaviour {
           c.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().sprite = exclamation;
           c.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().color = Color.red;
           continue;
-        } else {
-          bank.AddMoney(c.rent, "Rent Income");
-          bank.UpdatePropertyIncomes(propertySlot, c.rent);
         }
       }
     }

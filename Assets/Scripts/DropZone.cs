@@ -27,8 +27,8 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
       if(transform.childCount == 2 && d.parentToReturnTo != transform) {
         GameObject card2 = transform.GetChild(1).gameObject;
 
-        // Can't relocate the house if it's being leased
-        if(c.tenants || card2.GetComponent<Card>().tenants) return;
+        // Can't relocate the house if it's being leased, or if the user has no action points left!
+        if(c.tenants || card2.GetComponent<Card>().tenants || gameManager.actionPoints == 0) return;
 
         // Change any bonuses (moving cards from left panels to right panels, or right to left)
         card2.GetComponent<Card>().ChangeBonus("panel_bonus", 1);
@@ -42,9 +42,10 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         buttonImage2.sprite = (card2.GetComponent<Card>().tenants) ? gameManager.normal : gameManager.exclamation;
         buttonImage2.color = (buttonImage2.sprite == gameManager.normal) ? Color.white : Color.red;
       } else if (!c.purchased) { // Check if the property is owned
-
         //Property is not owned and was dropped on an open property slot
-        if(gameManager.bank.money < c.cost || transform.childCount == 2) return;
+
+        // Can the user afford the property? Is the property unlocked? Does the user have enough action points left?
+        if(gameManager.bank.money < c.cost || transform.childCount == 2 || gameManager.actionPoints == 0) return;
 
         c.purchasePrice = c.cost;
         gameManager.bank.AddMoney(-c.cost, "Property Purchase");
@@ -63,7 +64,9 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         //Generate a new card if possible
         gameManager.CheckPile();
       }
-      if(c.tenants) return;
+
+      // Property currently has tenants, or user has no action points
+      if(c.tenants || gameManager.actionPoints == 0) return;
 
       //Panel is owned and empty, property is owned by the player, check if leased for the openPropertyPanelButton icon
       Image buttonImage = GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<Image>();
@@ -72,6 +75,7 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
 
       managerImage.sprite = c.assignedManagerImage;
 
+      gameManager.UpdateActionPoints(-1);
       d.parentToReturnTo = transform;
     }
   }

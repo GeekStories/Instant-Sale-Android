@@ -95,49 +95,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cost: 0
+  purchasePrice: 0
   minCost: 30000
   maxCost: 65000
+  bondCost: 0
   baseRent: 0
   rent: 0
-  rentMin: 120
-  rentMax: 350
+  rentMin: 482
+  rentMax: 1435
   tenantTerm: 0
   tenantTermRemaining: 0
   tenantMoveInWeek: 0
-  powerUse: 0
-  rentBuffer: 6
+  waterUsage: 0
   weeksLeft: 0
-  upgradeCost: 0
+  newRent: 0
+  renovationTime: 0
+  listingTime: 0
+  listingBudget: 0
+  totalOffersHad: 0
+  estimatedOffers: 0
   assignedManager: 
   purchased: 0
   tenants: 0
+  underRenovation: 0
+  currentlyListed: 0
   gameManager: {fileID: 0}
   cardText: {fileID: 0}
-  houses:
-  - {fileID: 21300000, guid: a68a8ca084d22ec4a9fece045c1f7ec0, type: 3}
-  - {fileID: 21300002, guid: a68a8ca084d22ec4a9fece045c1f7ec0, type: 3}
-  - {fileID: 21300004, guid: a68a8ca084d22ec4a9fece045c1f7ec0, type: 3}
-  - {fileID: 21300006, guid: a68a8ca084d22ec4a9fece045c1f7ec0, type: 3}
-  - {fileID: 21300008, guid: a68a8ca084d22ec4a9fece045c1f7ec0, type: 3}
-  - {fileID: 21300010, guid: a68a8ca084d22ec4a9fece045c1f7ec0, type: 3}
-  - {fileID: 21300012, guid: a68a8ca084d22ec4a9fece045c1f7ec0, type: 3}
-  - {fileID: 21300014, guid: a68a8ca084d22ec4a9fece045c1f7ec0, type: 3}
-  - {fileID: 21300000, guid: 65602681eff4336479a7c173226220a7, type: 3}
-  - {fileID: 21300002, guid: 65602681eff4336479a7c173226220a7, type: 3}
-  - {fileID: 21300004, guid: 65602681eff4336479a7c173226220a7, type: 3}
-  - {fileID: 21300006, guid: 65602681eff4336479a7c173226220a7, type: 3}
-  - {fileID: 21300008, guid: 65602681eff4336479a7c173226220a7, type: 3}
-  - {fileID: 21300010, guid: 65602681eff4336479a7c173226220a7, type: 3}
-  - {fileID: 21300012, guid: 65602681eff4336479a7c173226220a7, type: 3}
-  - {fileID: 21300014, guid: 65602681eff4336479a7c173226220a7, type: 3}
-  - {fileID: 21300000, guid: 053728f4a330f064c8abfdf9a1765844, type: 3}
-  - {fileID: 21300002, guid: 053728f4a330f064c8abfdf9a1765844, type: 3}
-  - {fileID: 21300004, guid: 053728f4a330f064c8abfdf9a1765844, type: 3}
-  - {fileID: 21300006, guid: 053728f4a330f064c8abfdf9a1765844, type: 3}
-  - {fileID: 21300008, guid: 053728f4a330f064c8abfdf9a1765844, type: 3}
-  - {fileID: 21300010, guid: 053728f4a330f064c8abfdf9a1765844, type: 3}
-  - {fileID: 21300012, guid: 053728f4a330f064c8abfdf9a1765844, type: 3}
-  - {fileID: 21300014, guid: 053728f4a330f064c8abfdf9a1765844, type: 3}
+  houseImage: {fileID: 0}
   assignedManagerImage: {fileID: 0}
   spriteImage: {fileID: 0}
 --- !u!114 &1917485448190486396

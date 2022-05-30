@@ -34,7 +34,7 @@ public static class Calculate {
   }
 
   public static float RawIncome(GameObject[] buyPanels, List<Dictionary<string, int>> Loans, List<GameObject> hiredManagers) {
-    float x = 0; //Start at 0
+    float x = 278; //Start at 278 (amount remaining after rent and living costs from main job income)
 
     //Add up all the rent currently being collected
     foreach(GameObject item in buyPanels) {
@@ -49,7 +49,7 @@ public static class Calculate {
     //Deduct all the loan repayments
     foreach(Dictionary<string, int> loan in Loans) {
       if(loan["totalPaid"] == loan["total"]) continue;
-      x -= loan["repayments"] / 4;
+      x -= loan["repayments"];
     }
 
     // Deduct payroll
