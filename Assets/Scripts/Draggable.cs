@@ -15,13 +15,14 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
   public void OnBeginDrag(PointerEventData eventData) {
     parentToReturnTo = transform.parent;
 
-    if(!parentToReturnTo.CompareTag("CardPile")) { //If the card was taken from a property slot
+    if(parentToReturnTo.name != "Card Pile") { //If the card was taken from a property slot
       //Reset the open panel icon
-      parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<Image>().sprite = gameManager.normal;
-      parentToReturnTo.GetComponent<BuyPanel>().openPropertySlotButton.GetComponentInChildren<Image>().color = Color.white;
+      parentToReturnTo.parent.GetComponent<PropertySlot>().openPropertySlotButton.GetComponent<Image>().sprite = gameManager.normal;
+      parentToReturnTo.parent.GetComponent<PropertySlot>().openPropertySlotButton.GetComponent<Image>().color = Color.white;
     }
 
-    transform.SetParent(transform.parent.parent);
+
+    transform.SetParent(parentToReturnTo.name != "Card Pile" ? transform.parent.parent.parent.parent : transform.parent.parent);
 
     //deduct any panel bonus
     c.ChangeBonus("panel_bonus", 1);
@@ -41,7 +42,8 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
     // If we haven't ended up back on the card pile, we're likely on a property slot. Add bonuses (if any)
     if(parentToReturnTo.name != "Card Pile") {
-      GetComponent<Card>().ChangeBonus("panel_bonus", parentToReturnTo.GetComponent<BuyPanel>().panelBonus);
+      float panelBonus = parentToReturnTo.parent.GetComponent<PropertySlot>().panelBonus;
+      c.ChangeBonus("panel_bonus", panelBonus);
     }
 
     GetComponent<CanvasGroup>().blocksRaycasts = true;

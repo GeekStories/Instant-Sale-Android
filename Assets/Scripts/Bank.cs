@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -20,7 +21,8 @@ public class Bank : MonoBehaviour {
   public Toggle[] termSelectors;
   public Slider loanAmountSlider;
 
-  public Text creditLimitText, loanAmountText, loanTotalText;
+  public Text loanAmountText, loanTotalText;
+  public TextMeshProUGUI creditLimitText;
   public TextMeshProUGUI moneyText, debtText;
   public Text[] propertyIncomeTexts;
   public int[] propertyIncomes;
@@ -98,11 +100,11 @@ public class Bank : MonoBehaviour {
 
     if(money > gameManager.GameStats["MostAmountOfMoney"]) {
       gameManager.GameStats["MostAmountOfMoney"] = money;
+      gameManager.cardMinCost = Mathf.FloorToInt(money / 2);
+      gameManager.cardMaxCost = Mathf.FloorToInt(money - (money / 4));
 
-      if(money > 150000) {
-        gameManager.cardMinCost = Mathf.FloorToInt(money / 2);
-        gameManager.cardMaxCost = Mathf.FloorToInt(money);
-      }
+      gameManager.cardMinRent = Mathf.FloorToInt(gameManager.cardMinRent * gameManager.supplyDemandIndex);
+      gameManager.cardMaxRent = Mathf.FloorToInt(gameManager.cardMaxRent * gameManager.supplyDemandIndex + 0.05f);
     }
   }
   private IEnumerator CountText(float newValue) {
@@ -289,7 +291,6 @@ public class Bank : MonoBehaviour {
     loan.Add("key", key);
 
     AddMoney(amount, "Loan Deposit");
-    
 
     creditLimit -= amount;
     creditLimitText.text = $"Credit Limit: {creditLimit:#,##0}";
@@ -298,13 +299,24 @@ public class Bank : MonoBehaviour {
     return loan;
   }
   public void HandleTakeLoanButton() {
+    if(gameManager.actionPoints == 0) return;
+
     Dictionary<string, int> newLoan = TakeLoan(GetSelectedToggle(), (int)loanAmountSlider.value);
-    if(gameManager.actionPoints > 0 || newLoan != null) {
+    if(newLoan != null) {
       Loans.Add(newLoan);
       UpdateLoanText(newLoan["key"]);
       totalDebt = Calculate.TotalDebt("totalDebt", Loans);
       gameManager.UpdateActionPoints(-1);
     }
+  }
+
+  // TODO: Check if player has an empty slot, if not calculate in the cost of a new property slot (cheapest available)
+  public void AutoSelectLoanAmount() {
+    if(gameManager.CardPile.childCount == 0) return;
+    int propertyCost = gameManager.CardPile.GetChild(0).GetComponent<Card>().cost;
+
+    if(money > propertyCost) loanAmountSlider.value = 1000;
+    else loanAmountSlider.value = (propertyCost - money);
   }
   public void PayLoanFull(int key) {
     Dictionary<string, int> loan = Loans.Find(loan => loan["key"] == key);

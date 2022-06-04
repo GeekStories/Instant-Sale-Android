@@ -7,14 +7,12 @@ public class GameManager : MonoBehaviour {
   public Bank bank;
   public PropertyPanel propertyPanel;
 
-  public Text[] tenancyTexts;
-
-  public Text weeksLeft;
-  public TextMeshProUGUI netWorthText, rawIncomeText;
-  public TextMeshProUGUI actionPointsText;
+  public TextMeshProUGUI netWorthText, rawIncomeText, actionPointsText;
   public TextMeshProUGUI weeksPerSecondText, weekText, monthYearText, supplyDemandText;
+  public TextMeshProUGUI cardsLeftText, weeksLeft;
   public Text primaryStatsText, otherStatsText, finalScoreText;
-  public Text cardsLeftText;
+
+  public Image[] displayCards;
 
   public int rent, score;
   public int cardsLeft, cardsLeftMax;
@@ -23,7 +21,7 @@ public class GameManager : MonoBehaviour {
   public int networth, addMoneyAmnt;
   public int nextUpgrade = 5;
 
-  public int cardMinCost, cardMaxCost;
+  public int cardMinCost, cardMaxCost, cardMinRent, cardMaxRent;
 
   public float timeBuffer = 0.75f;
   public float sellBuffer = 0.25f;
@@ -143,26 +141,32 @@ public class GameManager : MonoBehaviour {
       return;
     }
 
-    GameObject newCard = Instantiate(card, CardPile);
     int newWeeksLeft = Random.Range(3, 10);
-    newCard.GetComponent<Card>().cost = Mathf.FloorToInt(Random.Range(cardMinCost, cardMaxCost) * supplyDemandIndex);
-    newCard.GetComponent<Card>().weeksLeft = newWeeksLeft;
+
+    GameObject newCardObject = Instantiate(card, CardPile);
+    Card newCard = newCardObject.GetComponent<Card>();
+    newCard.baseRent = Random.Range(cardMinRent, cardMaxRent);
+    newCard.cost = Mathf.FloorToInt(Random.Range(cardMinCost, cardMaxCost) * supplyDemandIndex);
+    newCard.weeksLeft = newWeeksLeft;
+    newCard.houseImage.sprite = houseImages[Random.Range(0, houseImages.Length - 1)];
+    newCard.assignedManagerImage = defaultManagerSprite;
+
     weeksLeft.text = $"Expires in {newWeeksLeft} weeks";
 
-
-    newCard.transform.GetChild(2).GetComponent<Image>().sprite = houseImages[Random.Range(0, houseImages.Length - 1)];
-    newCard.GetComponent<Card>().assignedManagerImage = defaultManagerSprite;
-
+    displayCards[cardsLeft-1].gameObject.SetActive(false);
     cardsLeft--;
     cardsLeftText.text = $"{cardsLeft}/{cardsLeftMax}";
+
   }
   public void NextWeek() {
     //Start the next week
     week++;
 
     foreach(GameObject panel in buyPanels) {
-      if(panel.transform.childCount > 1) {
-        Card c = panel.transform.GetChild(1).GetComponent<Card>();
+      PropertySlot ps = panel.GetComponent<PropertySlot>();
+      if(ps.DropZone.childCount > 0) {
+        Card c = ps.DropZone.GetChild(0).GetComponent<Card>();
+
         //Add random water usage
         if(c.tenants) c.waterUsage += Random.Range(15, Random.Range(25, 45));
 
@@ -238,8 +242,9 @@ public class GameManager : MonoBehaviour {
       // Charge water rates
       int waterCost = 0;
       foreach(GameObject panel in buyPanels) {
-        if(panel.transform.childCount > 1) {
-          Card c = panel.transform.GetChild(1).GetComponent<Card>();
+        PropertySlot ps = panel.GetComponent<PropertySlot>();
+        if(ps.DropZone.childCount > 0) {
+          Card c = ps.DropZone.GetChild(0).GetComponent<Card>();
           waterCost += propertyPanel.GetWaterCost(c.waterUsage);
           c.waterUsage = 0;
         }
@@ -273,6 +278,11 @@ public class GameManager : MonoBehaviour {
     actionPointsText.text = $"{actionPoints} / {actionPointsMax}";
 
     cardsLeft = cardsLeftMax;
+
+    for(int i = 0; i < displayCards.Length - 1; i++) {
+      displayCards[i].gameObject.SetActive(true);
+    }
+
     CheckPile();
 
     //Start of new week
@@ -371,13 +381,14 @@ public class GameManager : MonoBehaviour {
   }
   public void CheckTenantTerms() {
     foreach(GameObject panel in buyPanels) {
-      if(panel.transform.childCount > 1) {
-        Card c = panel.transform.GetChild(1).GetComponent<Card>();
+      PropertySlot ps = panel.GetComponent<PropertySlot>();
+      if(ps.DropZone.childCount > 0) {
+        Card c = ps.DropZone.GetChild(0).GetComponent<Card>();
         string number = panel.name[^2..]; // Last 2 digits of panel name ie 12 or _3
         int propertySlot = int.Parse(number.Replace("_", "")) - 1;
 
         if(!c.tenants) {
-          tenancyTexts[propertySlot].text = "";
+          ps.tenancyTermText.text = "";
 
           // Assigned manager AND no current lease, auto lease!!
           if(c.assignedManager != "") {
@@ -385,9 +396,10 @@ public class GameManager : MonoBehaviour {
             propertyPanel.GenerateTenancy();
             propertyPanel.card = null;
 
-            GameObject.Find($"OpenPropertyPanel_{propertySlot + 1}").GetComponent<Image>().sprite = normal;
-            GameObject.Find($"OpenPropertyPanel_{propertySlot + 1}").GetComponent<Image>().color = Color.white;
-            tenancyTexts[propertySlot].text = c.tenantTerm.ToString();
+            ps.openPropertySlotButton.GetComponent<Image>().sprite = normal;
+            ps.openPropertySlotButton.GetComponent<Image>().color = Color.white;
+
+            ps.tenancyTermText.text = c.tenantTerm.ToString();
           }
           continue;
         }
@@ -399,7 +411,7 @@ public class GameManager : MonoBehaviour {
           }
 
           c.tenantTermRemaining--;
-          tenancyTexts[propertySlot].text = $"{c.tenantTermRemaining}";
+          ps.tenancyTermText.text = $"{c.tenantTermRemaining}";
           GameStats["TotalMonthsStayed"]++;
         }
 
@@ -408,12 +420,12 @@ public class GameManager : MonoBehaviour {
           c.tenants = false;
           c.tenantTerm = 0;
           c.tenantTermRemaining = 0;
-          tenancyTexts[propertySlot].text = "";
+          ps.tenancyTermText.text = "";
 
           bank.AddMoney(-c.bondCost, "Bond Reclaim");
 
-          c.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().sprite = exclamation;
-          c.transform.parent.GetComponent<BuyPanel>().openPropertySlotButton.GetComponent<Image>().color = Color.red;
+          ps.openPropertySlotButton.GetComponent<Image>().sprite = exclamation;
+          ps.openPropertySlotButton.GetComponent<Image>().color = Color.red;
           continue;
         }
       }

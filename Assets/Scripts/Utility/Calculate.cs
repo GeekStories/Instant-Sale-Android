@@ -5,8 +5,9 @@ public static class Calculate {
     float x = 0;
 
     foreach(GameObject item in buyPanels) {
-      if(item.GetComponent<BuyPanel>().isOwned && item.transform.childCount > 1) {
-        Card c = item.GetComponentInChildren<Card>();
+      PropertySlot bp = item.GetComponent<PropertySlot>();
+      if(bp.isOwned && bp.DropZone.childCount > 0) {
+        Card c = bp.DropZone.GetChild(0).GetComponent<Card>();
         x += (c.cost * sellBuffer) * supplyDemandIndex;
       }
     }
@@ -37,9 +38,10 @@ public static class Calculate {
     float x = 278; //Start at 278 (amount remaining after rent and living costs from main job income)
 
     //Add up all the rent currently being collected
-    foreach(GameObject item in buyPanels) {
-      if(item.GetComponent<BuyPanel>().isOwned && item.transform.childCount > 1) {
-        Card c = item.GetComponentInChildren<Card>();
+    foreach(GameObject panel in buyPanels) {
+      PropertySlot ps = panel.GetComponent<PropertySlot>();
+      if(ps.isOwned && ps.DropZone.childCount > 0) {
+        Card c = ps.DropZone.GetChild(0).GetComponent<Card>();
         if(c.tenants) {
           x += c.rent;
         }

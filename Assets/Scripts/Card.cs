@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class Card : MonoBehaviour {
   public int cost, purchasePrice = 0, bondCost;
-  public int baseRent, rent, rentMin, rentMax;
+  public int baseRent, rent;
   public int tenantTerm, tenantTermRemaining, tenantMoveInWeek;
   public int waterUsage = 0;
   public int weeksLeft;
@@ -25,12 +26,12 @@ public class Card : MonoBehaviour {
 
   public GameManager gameManager;
 
-  public Text cardText;
+  public TextMeshProUGUI cardText;
 
-  public Sprite houseImage;
+  public Image houseImage;
   public Sprite assignedManagerImage;
 
-  public Image spriteImage;
+  // public Image spriteImage;
 
   public List<Dictionary<string, int>> offers = new();
 
@@ -41,8 +42,6 @@ public class Card : MonoBehaviour {
 
   private void Start() {
     gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
-    cardText = transform.GetChild(1).GetComponent<Text>();
-    baseRent = Random.Range(rentMin, rentMax);
     UpdateRent();
   }
   public void Destroy() {

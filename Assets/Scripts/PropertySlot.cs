@@ -1,12 +1,16 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
-public class BuyPanel : MonoBehaviour {
+public class PropertySlot : MonoBehaviour {
 
   public GameManager gameManager;
-  public GameObject panelLock;
+  public Image lockImage;
+  public GameObject unlockObject;
+  public Transform DropZone;
   public Button openPropertySlotButton;
   public Sprite locked, unlocked;
+  public TextMeshProUGUI tenancyTermText;
 
   public int cost;
   public bool isOwned = false;
@@ -17,8 +21,12 @@ public class BuyPanel : MonoBehaviour {
   }
 
   public void CheckMoney() {
-    if(gameManager.bank.money >= cost && !isOwned) panelLock.GetComponent<Image>().sprite = unlocked;
-    else panelLock.GetComponent<Image>().sprite = locked;
+    if(gameManager.bank.money >= cost && !isOwned) lockImage.GetComponent<Image>().sprite = unlocked;
+    else {
+      if(gameObject.name != "PropertySlot_1") {
+        lockImage.GetComponent<Image>().sprite = locked;
+      }
+    }
   }
 
   public void Unlock() {
@@ -26,10 +34,7 @@ public class BuyPanel : MonoBehaviour {
       gameManager.bank.AddMoney(-cost, "Land Purchase");
       gameManager.GameStats["TotalMoneySpent"] += cost;
 
-      // GetComponent<GridLayoutGroup>().cellSize = new Vector2(200, 300);
-      GetComponent<GridLayoutGroup>().enabled = true;
-
-      panelLock.SetActive(false);
+      unlockObject.SetActive(false);
       gameManager.UpdateActionPoints(-1);
       isOwned = true;
     }
