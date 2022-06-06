@@ -13,16 +13,19 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     c = GetComponent<Card>();
   }
   public void OnBeginDrag(PointerEventData eventData) {
+    if(c.tenants) {
+      return;
+    }
+
     parentToReturnTo = transform.parent;
 
     if(parentToReturnTo.name != "Card Pile") { //If the card was taken from a property slot
-      //Reset the open panel icon
+                                               //Reset the open panel icon
       parentToReturnTo.parent.GetComponent<PropertySlot>().openPropertySlotButton.GetComponent<Image>().sprite = gameManager.normal;
       parentToReturnTo.parent.GetComponent<PropertySlot>().openPropertySlotButton.GetComponent<Image>().color = Color.white;
     }
 
-
-    transform.SetParent(parentToReturnTo.name != "Card Pile" ? transform.parent.parent.parent.parent : transform.parent.parent);
+    transform.SetParent(parentToReturnTo.name != "Card Pile" ? transform.parent.parent.parent.parent : transform.parent.parent.parent);
 
     //deduct any panel bonus
     c.ChangeBonus("panel_bonus", 1);

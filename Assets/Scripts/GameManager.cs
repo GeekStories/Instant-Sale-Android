@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour {
   public TextMeshProUGUI netWorthText, rawIncomeText, actionPointsText;
   public TextMeshProUGUI weeksPerSecondText, weekText, monthYearText, supplyDemandText;
   public TextMeshProUGUI cardsLeftText, weeksLeft;
-  public Text primaryStatsText, otherStatsText, finalScoreText;
+  public TextMeshProUGUI primaryStatsText, otherStatsText, finalScoreText;
 
   public Image[] displayCards;
 
@@ -41,6 +41,7 @@ public class GameManager : MonoBehaviour {
   public GameObject propertyManagersPanel;
   public GameObject selectedManager;
   public GameObject selectedHiredManager;
+  public GameObject statsPanel;
 
   public Image selectedHiredManagerIcon, selectedManagerIcon;
 
@@ -59,7 +60,7 @@ public class GameManager : MonoBehaviour {
     { "MoneySpentOnUpgrades", 0 },
     { "TotalPassedProperties", 0 },
     { "TotalUpgrades", 0 },
-    { "MostExpensiveProperty", 0 },
+    { "MostExpensiveOwned", 0 },
     { "MostExpensivePurchased", 0 },
     { "HighestRental", 0 },
     { "TotalNumberTenants", 0 },
@@ -95,23 +96,17 @@ public class GameManager : MonoBehaviour {
     InvokeRepeating(nameof(UpdateNetworth), 0, 0.5f);
   }
   public void UpdateNetworth() {
-    float networth = Calculate.NetWorth(buyPanels, sellBuffer, supplyDemandIndex, bank.money, bank.Loans);
-    netWorthText.text = $"NetWorth: ${networth:#,##0}";
 
+    float networth = Calculate.NetWorth(buyPanels, sellBuffer, supplyDemandIndex, bank.money, bank.Loans);
+
+    netWorthText.text = $"${networth:#,##0}";
+    netWorthText.color = networth > 0 ? Color.green : networth < 0 ? Color.red : Color.gray;
     if(networth > GameStats["HighestNetworth"]) GameStats["HighestNetworth"] = networth;
 
-    float inOut = Calculate.RawIncome(buyPanels, bank.Loans, hiredManagers);
 
-    if(inOut > 0) {
-      rawIncomeText.color = Color.green;
-      rawIncomeText.text = $"+${inOut:#,##0}";
-    } else if(inOut < 0) {
-      rawIncomeText.color = Color.red;
-      rawIncomeText.text = $"${inOut:#,##0}";
-    } else {
-      rawIncomeText.color = Color.gray;
-      rawIncomeText.text = $"${inOut:#,##0}";
-    }
+    float inOut = Calculate.RawIncome(buyPanels, bank.Loans, hiredManagers);
+    rawIncomeText.color = inOut > 0 ? Color.green : inOut < 0 ? Color.red : Color.gray;
+    rawIncomeText.text = inOut > 0 ? $"+${inOut:#,##0}" : inOut < 0 ? $"${inOut:#,##0}" : $"${inOut:#,##0}";
 
     GetComponent<Prestiege>().SetUnclaimedPoints(Mathf.RoundToInt(networth / 10000));
   }
@@ -124,6 +119,7 @@ public class GameManager : MonoBehaviour {
       //Check if we have any weeks left before expiry
       if(c.weeksLeft > 0) {
         cardsLeft = cardsLeftMax - 1;
+        c.cost = Mathf.FloorToInt(c.cost * supplyDemandIndex);
         weeksLeft.text = $"Expires in {c.weeksLeft} weeks";
       } else {
         c.Destroy(); //No weeks left, destroy the card
@@ -153,7 +149,7 @@ public class GameManager : MonoBehaviour {
 
     weeksLeft.text = $"Expires in {newWeeksLeft} weeks";
 
-    displayCards[cardsLeft-1].gameObject.SetActive(false);
+    // displayCards[cardsLeft - 1].gameObject.SetActive(false);
     cardsLeft--;
     cardsLeftText.text = $"{cardsLeft}/{cardsLeftMax}";
 
@@ -161,7 +157,6 @@ public class GameManager : MonoBehaviour {
   public void NextWeek() {
     //Start the next week
     week++;
-
     foreach(GameObject panel in buyPanels) {
       PropertySlot ps = panel.GetComponent<PropertySlot>();
       if(ps.DropZone.childCount > 0) {
@@ -279,15 +274,31 @@ public class GameManager : MonoBehaviour {
 
     cardsLeft = cardsLeftMax;
 
-    for(int i = 0; i < displayCards.Length - 1; i++) {
-      displayCards[i].gameObject.SetActive(true);
-    }
+    //    for(int i = 0; i < displayCards.Length - 1; i++) {
+    //      displayCards[i].gameObject.SetActive(true);
+    //    }
 
     CheckPile();
 
     //Start of new week
-    supplyDemandIndex += Random.Range(-0.01f, 0.012f);
-    supplyDemandText.text = $"{supplyDemandIndex:F2}";
+    supplyDemandIndex += Random.Range(-0.00005f, 0.00007f);
+
+    foreach(GameObject panel in buyPanels) {
+      PropertySlot ps = panel.GetComponent<PropertySlot>();
+      if(ps.DropZone.childCount > 0) {
+        Card c = ps.DropZone.GetChild(0).GetComponent<Card>();
+        c.cost = Mathf.FloorToInt(c.cost * supplyDemandIndex);
+
+        // Check for property value high score
+        if(c.cost > GameStats["MostExpensiveOwned"]) {
+          GameStats["MostExpensiveOwned"] = Mathf.FloorToInt(c.cost * supplyDemandIndex);
+        }
+
+        c.UpdateRent();
+      }
+    }
+
+    supplyDemandText.text = $"{supplyDemandIndex:F4}";
     cardsLeftText.text = $"{cardsLeft}/{cardsLeftMax}";
   }
   public void UpdateActionPoints(int amount) {
@@ -461,22 +472,25 @@ public class GameManager : MonoBehaviour {
       CheckPile();
     }
   }
-  public void CalculateScore() {
-    float score =
+  public float CalculateScore() {
+    return
         GameStats["TotalPropertiesOwned"]
         + (GameStats["TotalMoneySpent"] / 100000)
         + GameStats["TotalPropertiesSold"]
         + (GameStats["MoneySpentOnUpgrades"] / 100000)
         + GameStats["TotalPassedProperties"]
         + GameStats["TotalUpgrades"]
-        + (GameStats["MostExpensiveProperty"] / 100000)
+        + (GameStats["MostExpensiveOwned"] / 100000)
         + (GameStats["MostExpensivePurchased"] / 100000)
         + (GameStats["HighestRental"] / 10000)
         + GameStats["TotalNumberTenants"]
         + GameStats["TotalMonthsStayed"]
         + (GameStats["HighestNetworth"] / 100000)
         + (GameStats["MostAmountOfMoney"] / 100000);
+  }
 
+  public void OpenStatsPanel() {
+    float score = CalculateScore();
     finalScoreText.text = $"Score: {score:#,##0}";
 
     primaryStatsText.text =
@@ -487,14 +501,14 @@ public class GameManager : MonoBehaviour {
       $"Total Money Spent\n${GameStats["TotalMoneySpent"]:#,##0}";
 
     otherStatsText.text =
-      $"Most Expensive Property Owned\n${GameStats["MostExpensiveProperty"]:#,##0}\n\n" +
+      $"Most Expensive Property Owned\n${GameStats["MostExpensiveOwned"]:#,##0}\n\n" +
       $"Most Expensive Property Purchased\n${GameStats["MostExpensivePurchased"]:#,##0}\n\n" +
       $"Highest Rental Cost\n${GameStats["HighestRental"]:#,##0}\n\n" +
       $"Number Of Tenants Housed\n{GameStats["TotalNumberTenants"]} (over {GameStats["TotalMonthsStayed"]} months)\n\n" +
       $"Highest Networth Obtained\n${GameStats["HighestNetworth"]:#,##0}\n\n" +
       $"Most Amount Of Money Had\n${GameStats["MostAmountOfMoney"]:#,##0}";
 
-    PlayerPrefs.SetFloat("UnclaimedPoints", score);
+    statsPanel.SetActive(true);
   }
   public void ResetGame() {
     UnityEngine.SceneManagement.SceneManager.LoadScene(0);

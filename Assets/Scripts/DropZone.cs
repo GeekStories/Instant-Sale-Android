@@ -50,20 +50,31 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
         //Property is not owned and was dropped on an open property slot
 
         // Can the user afford the property? Is the property unlocked? Does the user have enough action points left?
-        if(gameManager.bank.money < c.cost || parentPropertySlot.DropZone.childCount > 0 || gameManager.actionPoints == 0) return;
+        if(gameManager.bank.money < Mathf.FloorToInt(c.cost * gameManager.supplyDemandIndex) || parentPropertySlot.DropZone.childCount > 0 || gameManager.actionPoints == 0) return;
 
-        c.purchasePrice = c.cost;
-        gameManager.bank.AddMoney(-c.cost, "Property Purchase");
-        gameManager.GameStats["TotalMoneySpent"] += c.cost;
+        c.purchasePrice = Mathf.FloorToInt(c.cost * gameManager.supplyDemandIndex);
+        gameManager.bank.AddMoney(-c.purchasePrice, "Property Purchase");
+        gameManager.GameStats["TotalMoneySpent"] += c.purchasePrice;
 
         c.purchased = true;
 
         parentPropertySlot.GetComponent<PropertySlot>().openPropertySlotButton.GetComponent<Image>().sprite = gameManager.exclamation;
         parentPropertySlot.GetComponent<PropertySlot>().openPropertySlotButton.GetComponent<Image>().color = Color.red;
 
-        //Check for highscores
-        if(c.cost > gameManager.GameStats["MostExpensivePurchased"]) gameManager.GameStats["MostExpensivePurchased"] = c.cost;
-        if(c.rent > gameManager.GameStats["HighestRental"]) gameManager.GameStats["HighestRental"] = c.rent;
+        //Check for highest property purchase price highscore
+        if(Mathf.FloorToInt(c.cost * gameManager.supplyDemandIndex) > gameManager.GameStats["MostExpensivePurchased"]) {
+          gameManager.GameStats["MostExpensivePurchased"] = Mathf.FloorToInt(c.cost * gameManager.supplyDemandIndex);
+        }
+
+        // Check for property value high score
+        if(c.cost > gameManager.GameStats["MostExpensiveOwned"]) {
+          gameManager.GameStats["MostExpensiveOwned"] = Mathf.FloorToInt(c.cost * gameManager.supplyDemandIndex);
+        }
+
+        if(c.rent > gameManager.GameStats["HighestRental"]) {
+          gameManager.GameStats["HighestRental"] = c.rent;
+        }
+
         gameManager.GameStats["TotalPropertiesOwned"]++;
 
         //Generate a new card if possible

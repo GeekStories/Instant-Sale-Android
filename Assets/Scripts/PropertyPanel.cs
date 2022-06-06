@@ -197,9 +197,15 @@ public class PropertyPanel : MonoBehaviour {
     gameManager.GameStats["TotalUpgrades"]++;
     gameManager.UpdateActionPoints(-1);
 
-    // Check for high score
-    if(card.rent > gameManager.GameStats["HighestRental"]) gameManager.GameStats["HighestRental"] = card.rent;
-    if(card.cost > gameManager.GameStats["MostExpensiveProperty"]) gameManager.GameStats["MostExpensiveProperty"] = card.cost;
+    // Check for rent value high score
+    if(card.rent > gameManager.GameStats["HighestRental"]) {
+      gameManager.GameStats["HighestRental"] = card.rent;
+    }
+
+    // Check for property value high score
+    if(card.cost > gameManager.GameStats["MostExpensiveOwned"]) {
+      gameManager.GameStats["MostExpensiveOwned"] = Mathf.FloorToInt(card.cost * gameManager.supplyDemandIndex);
+    }
   }
   public void ListProperty() {
     int cost = (int)listingBudgetSlider.value;

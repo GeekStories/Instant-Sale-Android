@@ -200,10 +200,11 @@ public class Bank : MonoBehaviour {
           List<Card> propertiesToBeRepod = new();
 
           foreach(GameObject panel in gameManager.buyPanels) {
-            if(panel.transform.childCount > 1) {
-              Card c = panel.transform.GetChild(1).GetComponent<Card>();
+            PropertySlot ps = panel.GetComponent<PropertySlot>();
+            if(ps.DropZone.childCount > 0) {
+              Card c = ps.DropZone.GetChild(0).GetComponent<Card>();
 
-              collectedValue += c.cost * 0.90f;
+              collectedValue += Mathf.FloorToInt(c.cost * gameManager.supplyDemandIndex) * 0.90f;
               propertiesToBeRepod.Add(c);
 
               if(collectedValue > amountOwing) break;
@@ -212,7 +213,7 @@ public class Bank : MonoBehaviour {
 
           //Force sell the property
           foreach(Card property in propertiesToBeRepod) {
-            int salePrice = Mathf.FloorToInt(property.cost * .90f);
+            int salePrice = Mathf.FloorToInt(Mathf.FloorToInt(property.cost * gameManager.supplyDemandIndex) * .90f);
             AddMoney(salePrice, "Property Sale"); //Force sell the property at %90 its value
             gameManager.GameStats["TotalPropertiesSold"]++;
             gameManager.GameStats["TotalValueOfPropertiesSold"] += salePrice;
@@ -313,7 +314,7 @@ public class Bank : MonoBehaviour {
   // TODO: Check if player has an empty slot, if not calculate in the cost of a new property slot (cheapest available)
   public void AutoSelectLoanAmount() {
     if(gameManager.CardPile.childCount == 0) return;
-    int propertyCost = gameManager.CardPile.GetChild(0).GetComponent<Card>().cost;
+    int propertyCost = Mathf.FloorToInt(gameManager.CardPile.GetChild(0).GetComponent<Card>().cost * gameManager.supplyDemandIndex);
 
     if(money > propertyCost) loanAmountSlider.value = 1000;
     else loanAmountSlider.value = (propertyCost - money);

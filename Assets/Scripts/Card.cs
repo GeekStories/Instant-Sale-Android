@@ -60,13 +60,13 @@ public class Card : MonoBehaviour {
     }
 
     cardText.text =
-      $"Value: ${cost:#,##0}\n" +
+      $"Value: ${Mathf.FloorToInt(cost * gameManager.supplyDemandIndex):#,##0}\n" +
       $"Rent: +${rent}";
   }
 
   public void UpdateRenoTime() {
     cardText.text =
-      $"Value: ${cost:#,##0}\n" +
+      $"Value: ${Mathf.FloorToInt(cost * gameManager.supplyDemandIndex):#,##0}\n" +
       $"Reno: {renovationTime} weeks";
   }
 }
