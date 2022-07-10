@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour {
 
   public Image[] displayCards;
 
-  public int rent, score;
+  public int score;
   public int cardsLeft, cardsLeftMax;
   public int actionPointsMax, actionPoints;
   public int year = 0, month = 1, week = 1, weeksPerMinute, maxWeeksPerMinute = 0;
@@ -76,7 +76,6 @@ public class GameManager : MonoBehaviour {
   public Button musicToggle, soundToggle, fireManagerButton;
 
   private void Start() {
-    rent = 0;
     cardsLeftMax = 5;
     cardsLeft = cardsLeftMax;
     year = 0;
@@ -184,22 +183,26 @@ public class GameManager : MonoBehaviour {
           if(c.listingTime > 0) {
             List<Dictionary<string, int>> updatedOffers = new();
 
-
+            // Can we receive any more offers?
             if(c.totalOffersHad < c.estimatedOffers) {
+
+              // Decrease time left on all offers by 1 week
               c.offers.ForEach((Dictionary<string, int> offer) => {
                 offer["expires"]--;
                 if(offer["expires"] > 0) updatedOffers.Add(offer);
               });
 
+              // Sort by expring soon 
               updatedOffers.Sort((o1, o2) => o1["expires"].CompareTo(o2["expires"]));
 
               int x = Random.Range(0, c.estimatedOffers / 2);
               c.totalOffersHad += x;
               for(int i = 0; i < x; i++) {
-                Dictionary<string, int> newOffer = new();
-                newOffer.Add("key", Random.Range(1111, 9999));
-                newOffer.Add("amount", Mathf.FloorToInt((c.cost * supplyDemandIndex) + Random.Range(-5000, 15000)));
-                newOffer.Add("expires", Random.Range(1, c.listingTime));
+                Dictionary<string, int> newOffer = new() {
+                  { "key", Random.Range(1111, 9999) },
+                  { "amount", Mathf.FloorToInt((c.cost * supplyDemandIndex) + Random.Range(-5000, 15000)) },
+                  { "expires", Random.Range(1, c.listingTime) }
+                };
                 updatedOffers.Add(newOffer);
               }
 
@@ -226,26 +229,12 @@ public class GameManager : MonoBehaviour {
       week = 1;
 
       bank.AddMoney(848, "Job Payment");
-      bank.AddMoney(-300, "Couch Rent");
-      bank.AddMoney(-270, "Living Costs");
+      bank.AddMoney(-570, "Living Costs");
     }
 
     if(month == 13) {
       year++;
       month = 1;
-
-      // Charge water rates
-      int waterCost = 0;
-      foreach(GameObject panel in buyPanels) {
-        PropertySlot ps = panel.GetComponent<PropertySlot>();
-        if(ps.DropZone.childCount > 0) {
-          Card c = ps.DropZone.GetChild(0).GetComponent<Card>();
-          waterCost += propertyPanel.GetWaterCost(c.waterUsage);
-          c.waterUsage = 0;
-        }
-
-      }
-      if(waterCost > 0) bank.AddMoney(-waterCost, $"Water Rates Payment");
     }
 
     //Every 5 years, you'll gain 1 extra card per week!
@@ -253,9 +242,6 @@ public class GameManager : MonoBehaviour {
       nextUpgrade += 5;
       cardsLeftMax++;
     }
-
-    GameStats["NetWorth"] = networth;
-    GameStats["Money"] = bank.money;
 
     weekText.text = $"W{week}";
     monthYearText.text = $"{month:00}/{1980 + year}";
@@ -274,15 +260,11 @@ public class GameManager : MonoBehaviour {
 
     cardsLeft = cardsLeftMax;
 
-    //    for(int i = 0; i < displayCards.Length - 1; i++) {
-    //      displayCards[i].gameObject.SetActive(true);
-    //    }
-
     CheckPile();
 
     //Start of new week
     supplyDemandIndex += Random.Range(-0.00005f, 0.00007f);
-
+    int waterCost = 0;
     foreach(GameObject panel in buyPanels) {
       PropertySlot ps = panel.GetComponent<PropertySlot>();
       if(ps.DropZone.childCount > 0) {
@@ -295,11 +277,21 @@ public class GameManager : MonoBehaviour {
         }
 
         c.UpdateRent();
+
+        if(month == 1) {
+          waterCost += propertyPanel.GetWaterCost(c.waterUsage);
+          c.waterUsage = 0;
+        }
       }
     }
 
+    if(waterCost > 0) bank.AddMoney(-waterCost, $"Water Rates Payment");
+
     supplyDemandText.text = $"{supplyDemandIndex:F4}";
     cardsLeftText.text = $"{cardsLeft}/{cardsLeftMax}";
+
+    GameStats["NetWorth"] = networth;
+    GameStats["Money"] = bank.money;
   }
   public void UpdateActionPoints(int amount) {
     actionPoints += amount;

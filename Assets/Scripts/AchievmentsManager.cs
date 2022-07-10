@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class AchievmentsManager : MonoBehaviour {
 
+  public GameManager gameManager;
   public Button claimButton;
-  public Text detailsText;
+  public TextMeshProUGUI detailsText;
 
-  readonly int[] rewards = {
+  int[] rewards = {
     50000, //Rent
     25000, //Owned Properties
     15250, //Sold Properties
@@ -14,7 +16,7 @@ public class AchievmentsManager : MonoBehaviour {
     16500 //Upgrades
   };
 
-  readonly int[] requirements =  {
+  int[] requirements =  {
     1000, //Rent
     3, //Owned Properties
     5, //Sold Properties
@@ -23,12 +25,16 @@ public class AchievmentsManager : MonoBehaviour {
   };
 
   int activePanel;
-  GameManager gameManager;
 
   private void Start() {
-    gameManager = GetComponent<GameManager>();
     activePanel = 0;
   }
+
+  public void OpenAchievementsManager() {
+    UpdatePanel(0);
+    gameObject.SetActive(true);
+  }
+
   public void ChangePanel(int p) {
     if(activePanel == p) {
       UpdatePanel(p);
@@ -41,11 +47,11 @@ public class AchievmentsManager : MonoBehaviour {
   void UpdatePanel(int p) {
     switch(p) {
       case 0: //Rent
-        if(gameManager.rent >= requirements[0]) claimButton.interactable = true;
+        if(gameManager.GameStats["HighestRental"] >= requirements[0]) claimButton.interactable = true;
         else claimButton.interactable = false;
 
         detailsText.text =
-          $"${gameManager.rent:#,##0}/${requirements[0]:#,##0}\n\n" +
+          $"${gameManager.GameStats["HighestRental"]:#,##0}/${requirements[0]:#,##0}\n\n" +
           $"Reward: ${rewards[0]:#,##0}";
         break;
       case 1: //Owned Properties

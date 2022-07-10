@@ -96,7 +96,7 @@ public class Bank : MonoBehaviour {
     newTransaction.transform.GetChild(1).GetComponent<Text>().text = $"{(amount > 0 ? "deposit" : "withdraw")}";
     newTransaction.transform.GetChild(2).GetComponent<Text>().text = $"${money:#,##0}";
     newTransaction.transform.GetChild(3).GetComponent<Text>().text = $"{purchaseType}";
-    newTransaction.transform.GetChild(4).GetComponent<Text>().text = $"W{gameManager.week}:M{gameManager.month}:Y{gameManager.year}";
+    newTransaction.transform.GetChild(4).GetComponent<Text>().text = $"W{gameManager.week}  {gameManager.month:00}/{1980 + gameManager.year}";
 
     if(money > gameManager.GameStats["MostAmountOfMoney"]) {
       gameManager.GameStats["MostAmountOfMoney"] = money;

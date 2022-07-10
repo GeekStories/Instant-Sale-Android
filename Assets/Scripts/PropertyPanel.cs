@@ -218,7 +218,7 @@ public class PropertyPanel : MonoBehaviour {
 
     card.currentlyListed = true;
     card.listingTime = time;
-    card.listingBudget = (int)listingBudgetSlider.value;
+    card.listingBudget = cost;
     card.estimatedOffers = Mathf.FloorToInt(((int)listingBudgetSlider.value * 1.5f / 10000 * gameManager.supplyDemandIndex) + time * 1.5f);
     offersPanelTimeLeftText.text = $"{time} weeks left";
     offersPanelContainer.SetActive(true);
