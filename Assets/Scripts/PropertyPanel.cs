@@ -157,7 +157,8 @@ public class PropertyPanel : MonoBehaviour {
     int waterCost = GetWaterCost(card.waterUsage);
 
 
-    valueText.text = $"${card.cost:#,##0}";
+    float ROI = CalculateDifference(card.purchasePrice, card.cost + card.totalRentCollected);
+    valueText.text = $"${card.cost:#,##0} (%{ROI:F2})";
     rentText.text = $"${card.rent:#,##0}";
     slotBonusText.text = $"{slot}";
     managerBonusText.text = $"{managerBonus}";

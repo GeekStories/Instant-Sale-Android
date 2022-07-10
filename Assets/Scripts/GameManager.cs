@@ -80,8 +80,6 @@ public class GameManager : MonoBehaviour {
     cardsLeft = cardsLeftMax;
     year = 0;
 
-    supplyDemandText.text = $"{supplyDemandIndex:F2}";
-
     int x = Random.Range(3, 10); // Number of managers to generate
     for(int i = 0; i < x; i++) {
       GameObject newManager = GetComponent<GenerateManagers>().GenerateManager(managersForHirePanel, this);
@@ -263,31 +261,36 @@ public class GameManager : MonoBehaviour {
     CheckPile();
 
     //Start of new week
-    supplyDemandIndex += Random.Range(-0.00005f, 0.00007f);
+    float supplyDemandTrend = Random.Range(-0.00005f, 0.00007f);
+    supplyDemandIndex += supplyDemandTrend;
     int waterCost = 0;
     foreach(GameObject panel in buyPanels) {
       PropertySlot ps = panel.GetComponent<PropertySlot>();
       if(ps.DropZone.childCount > 0) {
         Card c = ps.DropZone.GetChild(0).GetComponent<Card>();
-        c.cost = Mathf.FloorToInt(c.cost * supplyDemandIndex);
+        c.cost += Mathf.FloorToInt(c.cost * supplyDemandTrend);
 
         // Check for property value high score
         if(c.cost > GameStats["MostExpensiveOwned"]) {
-          GameStats["MostExpensiveOwned"] = Mathf.FloorToInt(c.cost * supplyDemandIndex);
+          GameStats["MostExpensiveOwned"] = c.cost;
         }
 
-        c.UpdateRent();
+        if(!c.underRenovation) c.UpdateRent();
 
         if(month == 1) {
-          waterCost += propertyPanel.GetWaterCost(c.waterUsage);
+          int propertyWaterCost = propertyPanel.GetWaterCost(c.waterUsage);
+          waterCost += propertyWaterCost;
+          c.totalRentCollected -= propertyWaterCost;
           c.waterUsage = 0;
         }
       }
     }
 
-    if(waterCost > 0) bank.AddMoney(-waterCost, $"Water Rates Payment");
+    if(waterCost > 0) {
+      bank.AddMoney(-waterCost, $"Water Rates Payment");
+    }
 
-    supplyDemandText.text = $"{supplyDemandIndex:F4}";
+    supplyDemandText.text = $"{supplyDemandIndex:F5}";
     cardsLeftText.text = $"{cardsLeft}/{cardsLeftMax}";
 
     GameStats["NetWorth"] = networth;
@@ -426,6 +429,7 @@ public class GameManager : MonoBehaviour {
           ps.tenancyTermText.text = "";
 
           bank.AddMoney(-c.bondCost, "Bond Reclaim");
+          c.totalRentCollected += c.rent;
 
           ps.openPropertySlotButton.GetComponent<Image>().sprite = exclamation;
           ps.openPropertySlotButton.GetComponent<Image>().color = Color.red;

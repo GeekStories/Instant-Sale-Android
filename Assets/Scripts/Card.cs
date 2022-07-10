@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class Card : MonoBehaviour {
   public int cost, purchasePrice = 0, bondCost;
-  public int baseRent, rent;
+  public int baseRent, rent, totalRentCollected;
   public int tenantTerm, tenantTermRemaining, tenantMoveInWeek;
   public int waterUsage = 0;
   public int weeksLeft;
@@ -60,13 +60,31 @@ public class Card : MonoBehaviour {
     }
 
     cardText.text =
-      $"Value: ${Mathf.FloorToInt(cost * gameManager.supplyDemandIndex):#,##0}\n" +
+      $"Value: ${ShortenValue(cost)}\n" +
       $"Rent: +${rent}";
   }
 
   public void UpdateRenoTime() {
     cardText.text =
-      $"Value: ${Mathf.FloorToInt(cost * gameManager.supplyDemandIndex):#,##0}\n" +
+      $"Value: ${ShortenValue(cost)}\n" +
       $"Reno: {renovationTime} weeks";
+  }
+
+  string ShortenValue(long num) {
+    if(num >= 100000000) {
+      return (num / 1000000D).ToString("0.#0M");
+    }
+    if(num >= 1000000) {
+      return (num / 1000000D).ToString("0.#0M");
+    }
+    if(num >= 100000) {
+      return (num / 1000D).ToString("0.#0k");
+    }
+    if(num >= 10000) {
+      return (num / 1000D).ToString("0.#0k");
+    }
+
+    return num.ToString("#,##0.#0");
+
   }
 }
