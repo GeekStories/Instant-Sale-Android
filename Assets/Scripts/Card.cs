@@ -11,13 +11,14 @@ public class Card : MonoBehaviour {
   public int weeksLeft;
   public int newRent;
   public int renovationTime = 0;
+  public int spentOnUpgrades = 0;
+  public int spentOnWaterRates = 0;
+  public int totalRentInAdvance = 0;
 
   public int listingTime = 0;
   public int listingBudget = 0;
   public int totalOffersHad = 0;
   public int estimatedOffers = 0;
-
-  public string assignedManager = "";
 
   public bool purchased;
   public bool tenants = false;
@@ -29,9 +30,6 @@ public class Card : MonoBehaviour {
   public TextMeshProUGUI cardText;
 
   public Image houseImage;
-  public Sprite assignedManagerImage;
-
-  // public Image spriteImage;
 
   public List<Dictionary<string, int>> offers = new();
 
@@ -83,8 +81,6 @@ public class Card : MonoBehaviour {
     if(num >= 10000) {
       return (num / 1000D).ToString("0.#0k");
     }
-
     return num.ToString("#,##0.#0");
-
   }
 }

@@ -6,14 +6,14 @@ using UnityEngine.UI;
 public class PropertyPanel : MonoBehaviour {
   public GameManager gameManager;
   public GameObject sellCoverPanel, tenantsCoverPanel, renovationCoverPanel;
-  public PropertySlot selectedPanel;
+  public PropertySlot[] propertySlots;
   public GameObject offersPanelContainer, offersPanel, offerObject;
   public GameObject PropertyManagersBoxPanel;
 
   public Slider renovationBudgetSlider;
   public Slider listingBudgetSlider, listingTimeSlider;
 
-  public Text tenantText;
+  public TextMeshProUGUI tenancyTermText, tenancyRiskText, propertyBondAmount, tenancyEmptyText;
   public Text renovationCostText, renovationTimeText, rentIncreaseFromRenovationText;
   public Text listingBudgetText, listingTimeText, listingOffersEstimateText, offersPanelTimeLeftText;
 
@@ -23,22 +23,26 @@ public class PropertyPanel : MonoBehaviour {
 
   public Card card = null;
 
+  public Sprite defaultManagerSprite;
+
   public int currentOffer = 0, activeSlot, renovationBudget;
   public float upgradeRentValueModifier = 0.05f, waterRate = 1.35f;
+
+  PropertySlot selectedSlot;
+
   public void OpenPropertyPanel(int slotNumber) {
     gameObject.SetActive(!gameObject.activeInHierarchy); // Show or hide the property panel
     if(!gameObject.activeInHierarchy) return;
 
-    GameObject propertySlot = GameObject.Find("PropertySlot_" + slotNumber);
-    selectedPanel = propertySlot.GetComponent<PropertySlot>();
     activeSlot = slotNumber;
+    selectedSlot = propertySlots[slotNumber - 1];
 
     sellCoverPanel.SetActive(false);
     tenantsCoverPanel.SetActive(false);
     renovationCoverPanel.SetActive(false);
     offersPanelContainer.SetActive(false);
 
-    card = (selectedPanel.DropZone.childCount > 0) ? selectedPanel.DropZone.GetChild(0).GetComponent<Card>() : null;
+    card = (selectedSlot.DropZone.childCount > 0) ? selectedSlot.DropZone.GetChild(0).GetComponent<Card>() : null;
 
     if(card == null) {
       renovationCostText.text = "No property in current slot!";
@@ -50,8 +54,14 @@ public class PropertyPanel : MonoBehaviour {
 
       sellButton.interactable = false;
 
-      tenantText.text = "No property available!";
+      tenancyEmptyText.text = "C";
+
+      tenancyTermText.text = "";
+      tenancyRiskText.text = "";
+      propertyBondAmount.text = "";
+
       findNewTenantButton.interactable = false;
+      ClearManager();
 
       return;
     }
@@ -87,7 +97,7 @@ public class PropertyPanel : MonoBehaviour {
       foreach(Dictionary<string, int> offer in card.offers) {
         GameObject newOfferObject = Instantiate(offerObject, offersPanel.transform);
         newOfferObject.name = "offer_" + offer["key"];
-        newOfferObject.transform.GetChild(0).GetComponent<Text>().text = $"${offer["amount"]:#,##0} (%{CalculateDifference(card.purchasePrice, offer["amount"]):F2})\nExpires in {offer["expires"]} weeks";
+        newOfferObject.transform.GetChild(0).GetComponent<Text>().text = $"${offer["amount"]:#,##0} (%{CalculateDifferenceAsPercentage(card.purchasePrice, offer["amount"]):F2})\nExpires in {offer["expires"]} weeks";
         newOfferObject.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(delegate () { RejectOffer(offer["key"]); });
         newOfferObject.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(delegate () { AcceptOffer(offer["key"]); });
       }
@@ -119,50 +129,51 @@ public class PropertyPanel : MonoBehaviour {
     UpdatePropertyDetailsText();
   }
   public void AssignManager(GameObject newManager) {
-    if(card.assignedManager != "") ClearManager();
+    if(selectedSlot.assignedManager != null) ClearManager();
 
     //Assign the new, selected manager
-    card.assignedManager = newManager.name;
-    card.ChangeBonus("manager_bonus", (newManager.GetComponent<Manager>().bonusAmount));
-    newManager.transform.GetChild(2).gameObject.SetActive(true);
-    Debug.Log("Assigned manager: " + newManager.name);
+    if(card != null) card.ChangeBonus("manager_bonus", (newManager.GetComponent<Manager>().bonusAmount));
 
+    newManager.transform.GetChild(2).gameObject.SetActive(true);
     newManager.GetComponent<Toggle>().interactable = false;
 
-    card.assignedManagerImage = newManager.transform.GetChild(0).GetComponent<Image>().sprite;
-    selectedPanel.GetComponent<DropZone>().managerImage.sprite = card.assignedManagerImage;
+    selectedSlot.assignedManager = newManager;
+    selectedSlot.managerImage.sprite = newManager.transform.GetChild(0).GetComponent<Image>().sprite;
 
     UpdatePropertyDetailsText();
   }
   public void ClearManager() {
     foreach(Transform manager in PropertyManagersBoxPanel.transform) {
-      if(manager.name == card.assignedManager) {
-        manager.GetComponent<Toggle>().isOn = false;
+      if(manager.name == selectedSlot.assignedManager.GetComponent<Manager>().name) {
+        manager.GetComponent<Toggle>().isOn = true;
         manager.transform.GetChild(2).gameObject.SetActive(false);
         manager.GetComponent<Toggle>().interactable = true;
       }
     }
 
-    card.ChangeBonus("manager_bonus", 1.00f);
-    card.assignedManager = "";
-    card.assignedManagerImage = gameManager.defaultManagerSprite;
-    selectedPanel.GetComponent<DropZone>().managerImage.sprite = gameManager.defaultManagerSprite;
+    if(card != null) card.ChangeBonus("manager_bonus", 1.00f);
+    selectedSlot.assignedManager = null;
+    selectedSlot.managerImage.sprite = defaultManagerSprite;
 
     UpdatePropertyDetailsText();
   }
   public void UpdatePropertyDetailsText() {
-    // string tenants = (card.tenants) ? "Yes" : card.underRenovation ? "(unable to lease while renovating)" : "No";
-    string slot = $"{(card.bonuses["panel_bonus"] == 0.00f ? "None" : $"%{((card.bonuses["panel_bonus"] - 1) * 100):F2}")}";
-    string managerBonus = $"{(card.assignedManager == "" ? "None" : $"%{(GameObject.Find(card.assignedManager).GetComponent<Manager>().bonusAmount - 1) * 100:F2}")}";
-    int waterCost = GetWaterCost(card.waterUsage);
+    if(card != null) {
+      // string tenants = (card.tenants) ? "Yes" : card.underRenovation ? "(unable to lease while renovating)" : "No";
+      string slot = $"{(card.bonuses["panel_bonus"] == 0.00f ? "None" : $"%{((card.bonuses["panel_bonus"] - 1) * 100):F2}")}";
+      int waterCost = GetWaterCost(card.waterUsage);
+      int totalInvested = card.purchasePrice + card.spentOnUpgrades + card.spentOnWaterRates;
+      int totalReturned = card.cost - card.purchasePrice + card.totalRentCollected + card.totalRentInAdvance;
+      float ROI = CalculateDifferenceAsPercentage(totalInvested, totalReturned);
 
+      valueText.text = $"${card.cost:#,##0} (%{ROI:F2})";
+      rentText.text = $"${card.rent:#,##0}";
+      slotBonusText.text = $"{slot}";
+      waterUsageText.text = $"{card.waterUsage:#,##0}L (${waterCost})";
+    }
 
-    float ROI = CalculateDifference(card.purchasePrice, card.cost + card.totalRentCollected);
-    valueText.text = $"${card.cost:#,##0} (%{ROI:F2})";
-    rentText.text = $"${card.rent:#,##0}";
-    slotBonusText.text = $"{slot}";
+    string managerBonus = $"{(selectedSlot.assignedManager == null ? "None" : $"%{(selectedSlot.assignedManager.GetComponent<Manager>().bonusAmount - 1) * 100:F2}")}";
     managerBonusText.text = $"{managerBonus}";
-    waterUsageText.text = $"{card.waterUsage:#,##0}L (${waterCost})";
   }
   public void PurchaseUpgrade() {
     if(gameManager.bank.money < renovationBudget || card.tenants || gameManager.actionPoints == 0) return;
@@ -170,6 +181,7 @@ public class PropertyPanel : MonoBehaviour {
     // Deduct the money (Check for new high score)
     gameManager.bank.AddMoney(-renovationBudget, "Property Renovation");
     gameManager.GameStats["MoneySpentOnUpgrades"] += renovationBudget;
+    card.spentOnUpgrades += renovationBudget;
 
     // Increase the value of the property
     card.cost += Mathf.FloorToInt(renovationBudget * 1.15f);
@@ -247,11 +259,10 @@ public class PropertyPanel : MonoBehaviour {
     listingOffersEstimateText.text = $"~{GetNumberOfPotentialOffers((int)listingBudgetSlider.value, (int)listingTimeSlider.value, gameManager.supplyDemandIndex)} offers";
   }
   public void UpdateTenantsText() {
-    tenantText.text =
-      $"Current Tenants: {card.tenants}\n" +
-      $"Lease Term: {card.tenantTermRemaining}/{card.tenantTerm} Months\n" +
-      $"Tenant Risk: Low\n" +
-      $"Bond: ${card.bondCost:#,##0}";
+    tenancyEmptyText.text = "";
+    tenancyTermText.text = $"{card.tenantTermRemaining}/{card.tenantTerm} months";
+    tenancyRiskText.text = "Low";
+    propertyBondAmount.text = $"${card.bondCost:#,##0}";
   }
   public void AcceptOffer(int key) {
     if(gameManager.actionPoints == 0) return;
@@ -261,8 +272,8 @@ public class PropertyPanel : MonoBehaviour {
     gameManager.GameStats["TotalPropertiesSold"]++;
     card.Destroy();
     OpenPropertyPanel(0);
-    GameObject.Find("OpenPropertyPanel_" + selectedPanel.name[^1]).GetComponent<Image>().sprite = gameManager.normal;
-    GameObject.Find("OpenPropertyPanel_" + selectedPanel.name[^1]).GetComponent<Image>().color = Color.white;
+    GameObject.Find("OpenPropertyPanel_" + selectedSlot.name[^1]).GetComponent<Image>().sprite = gameManager.normal;
+    GameObject.Find("OpenPropertyPanel_" + selectedSlot.name[^1]).GetComponent<Image>().color = Color.white;
 
     if(offersPanel.transform.childCount > 0) {
       foreach(Transform child in offersPanel.transform) {
@@ -306,16 +317,23 @@ public class PropertyPanel : MonoBehaviour {
     card.tenantTerm = Random.Range(1, 7) * 3;
     card.tenantTermRemaining = card.tenantTerm;
     card.tenantMoveInWeek = gameManager.week;
+
     gameManager.bank.AddMoney(card.rent * 4, "Bond Payment");
+    gameManager.bank.UpdatePropertyIncomes(activeSlot - 1, card.bondCost);
+
     card.bondCost = card.rent * 4;
+
     gameManager.bank.AddMoney(card.rent * 4, "Rent in Advance Payment");
+    gameManager.bank.UpdatePropertyIncomes(activeSlot - 1, card.rent * 4);
+
+    card.totalRentInAdvance += card.rent * 4;
     gameManager.GameStats["TotalNumberTenants"] += Random.Range(1, 5);
   }
   public int GetWaterCost(int usage) {
     return usage > 1000 ? Mathf.FloorToInt(waterRate * (usage - 1000)) : 0;
   }
 
-  float CalculateDifference(int initialValue, int currentValue) {
+  float CalculateDifferenceAsPercentage(int initialValue, int currentValue) {
     if(initialValue == currentValue) return 0;
 
     float difference = currentValue - initialValue;

@@ -51,7 +51,6 @@ public class GameManager : MonoBehaviour {
 
   public bool repeatingWeek = false;
 
-  public Dictionary<string, int> deductions = new();
   public Dictionary<string, float> GameStats = new() {
     { "TotalPropertiesOwned", 0 },
     { "TotalMoneySpent", 0 },
@@ -70,9 +69,7 @@ public class GameManager : MonoBehaviour {
   };
 
   public Transform CardPile;
-
   public Canvas tutorial;
-
   public Button musicToggle, soundToggle, fireManagerButton;
 
   private void Start() {
@@ -142,7 +139,6 @@ public class GameManager : MonoBehaviour {
     newCard.cost = Mathf.FloorToInt(Random.Range(cardMinCost, cardMaxCost) * supplyDemandIndex);
     newCard.weeksLeft = newWeeksLeft;
     newCard.houseImage.sprite = houseImages[Random.Range(0, houseImages.Length - 1)];
-    newCard.assignedManagerImage = defaultManagerSprite;
 
     weeksLeft.text = $"Expires in {newWeeksLeft} weeks";
 
@@ -280,6 +276,7 @@ public class GameManager : MonoBehaviour {
         if(month == 1) {
           int propertyWaterCost = propertyPanel.GetWaterCost(c.waterUsage);
           waterCost += propertyWaterCost;
+          c.spentOnWaterRates += propertyWaterCost;
           c.totalRentCollected -= propertyWaterCost;
           c.waterUsage = 0;
         }
@@ -334,7 +331,6 @@ public class GameManager : MonoBehaviour {
     if(bank.money < hiredManager.hireCost) return;
 
     bank.AddMoney(-hiredManager.hireCost, "Staff Hire Payment");
-    deductions.Add(hiredManager.name, hiredManager.weeklyPay);
 
     hiredManager.hired = true;
 
@@ -359,15 +355,20 @@ public class GameManager : MonoBehaviour {
       SelectManager(managersForHire[0]);
     }
   }
-  public void FireManager() {
+  public void FireSelectedManager() {
     if(actionPoints == 0) return;
 
-    // Remove wage from payroll
-    deductions.Remove(selectedHiredManager.name);
+    // Check if assigned to a property slot
+    bool assigned = false;
+    foreach(GameObject slot in buyPanels) {
+      PropertySlot ps = slot.GetComponent<PropertySlot>();
+      if(!ps.unlocked || ps.assignedManager == null) continue;
+      if(ps.assignedManager.name == selectedHiredManager.name) assigned = true;
+    }
 
-    // Remove from hired managers panel
-    GameObject managerToDelete = GameObject.Find(selectedHiredManager.name);
-    Destroy(managerToDelete);
+    if(!assigned) return;
+
+    Destroy(selectedHiredManager);
 
     // Remove from property panel
     Destroy(hiredManagers.Find(g => g.name == selectedHiredManager.name));
@@ -384,6 +385,7 @@ public class GameManager : MonoBehaviour {
 
     UpdateActionPoints(-1);
     SelectManager(hiredManagers[0]);
+
   }
   public void CheckTenantTerms() {
     foreach(GameObject panel in buyPanels) {
@@ -397,7 +399,7 @@ public class GameManager : MonoBehaviour {
           ps.tenancyTermText.text = "";
 
           // Assigned manager AND no current lease, auto lease!!
-          if(c.assignedManager != "") {
+          if(ps.assignedManager != null) {
             propertyPanel.card = c;
             propertyPanel.GenerateTenancy();
             propertyPanel.card = null;
@@ -445,7 +447,7 @@ public class GameManager : MonoBehaviour {
     if(weeksPerMinute < maxWeeksPerMinute) {
       weeksPerMinute++;
       weeksPerSecondText.text = $"{weeksPerMinute}";
-      CancelInvoke("RepeatingWeeks");
+      CancelInvoke(nameof(RepeatingWeeks));
       InvokeRepeating(nameof(RepeatingWeeks), (60 - weeksPerMinute) * timeBuffer, (60 - weeksPerMinute) * timeBuffer);
     }
   }
@@ -454,7 +456,7 @@ public class GameManager : MonoBehaviour {
       weeksPerMinute--;
       weeksPerSecondText.text = $"{weeksPerMinute}";
 
-      CancelInvoke("RepeatingWeeks");
+      CancelInvoke(nameof(RepeatingWeeks));
       InvokeRepeating(nameof(RepeatingWeeks), (60 - weeksPerMinute) * timeBuffer, (60 - weeksPerMinute) * timeBuffer);
     }
   }

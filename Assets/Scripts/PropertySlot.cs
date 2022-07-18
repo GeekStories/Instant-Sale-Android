@@ -12,6 +12,9 @@ public class PropertySlot : MonoBehaviour {
   public Sprite locked, unlocked;
   public TextMeshProUGUI tenancyTermText;
 
+  public GameObject assignedManager = null;
+  public Image managerImage;
+
   public int cost;
   public bool isOwned = false;
   public float panelBonus;

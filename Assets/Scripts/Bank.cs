@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class Bank : MonoBehaviour {
   public GameManager gameManager;
@@ -23,7 +22,7 @@ public class Bank : MonoBehaviour {
 
   public Text loanAmountText, loanTotalText;
   public TextMeshProUGUI creditLimitText;
-  public TextMeshProUGUI moneyText, debtText;
+  public TextMeshProUGUI moneyText, debtText, propertyBudgetText;
   public Text[] propertyIncomeTexts;
   public int[] propertyIncomes;
 
@@ -77,6 +76,10 @@ public class Bank : MonoBehaviour {
 
     currentPanel.SetActive(true);
   }
+
+  public void GodModeAddMoney(float amount) {
+    AddMoney(amount, "God mode");
+  }
   public void AddMoney(float amount, string purchaseType) {
     if(CountingCoroutine != null) StopCoroutine(CountingCoroutine);
 
@@ -102,6 +105,7 @@ public class Bank : MonoBehaviour {
       gameManager.GameStats["MostAmountOfMoney"] = money;
       gameManager.cardMinCost = Mathf.FloorToInt(money / 2);
       gameManager.cardMaxCost = Mathf.FloorToInt(money - (money / 4));
+      propertyBudgetText.text = $"{ShortenValue(gameManager.cardMinCost)} - {ShortenValue(gameManager.cardMaxCost)}";
 
       gameManager.cardMinRent = Mathf.FloorToInt(gameManager.cardMinRent * gameManager.supplyDemandIndex);
       gameManager.cardMaxRent = Mathf.FloorToInt(gameManager.cardMaxRent * gameManager.supplyDemandIndex + 0.05f);
@@ -213,7 +217,7 @@ public class Bank : MonoBehaviour {
 
           //Force sell the property
           foreach(Card property in propertiesToBeRepod) {
-            int salePrice = Mathf.FloorToInt(Mathf.FloorToInt(property.cost * gameManager.supplyDemandIndex) * .90f);
+            int salePrice = Mathf.FloorToInt(Mathf.FloorToInt(property.cost) * .90f);
             AddMoney(salePrice, "Property Sale"); //Force sell the property at %90 its value
             gameManager.GameStats["TotalPropertiesSold"]++;
             gameManager.GameStats["TotalValueOfPropertiesSold"] += salePrice;
@@ -383,5 +387,20 @@ public class Bank : MonoBehaviour {
       if(t.isOn) return int.Parse(t.name); //returns selected toggle
 
     return 12;
+  }
+  string ShortenValue(long num) {
+    if(num >= 100000000) {
+      return (num / 1000000D).ToString("0.#M");
+    }
+    if(num >= 1000000) {
+      return (num / 1000000D).ToString("0M");
+    }
+    if(num >= 100000) {
+      return (num / 1000D).ToString("0.#k");
+    }
+    if(num >= 10000) {
+      return (num / 1000D).ToString("0k");
+    }
+    return num.ToString("#,##0.#0");
   }
 }

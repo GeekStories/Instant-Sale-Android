@@ -5,7 +5,6 @@ using UnityEngine.UI;
 public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler {
   public GameManager gameManager;
   public PropertySlot parentPropertySlot;
-  public Image managerImage;
 
   public void Start() {
     parentPropertySlot = transform.parent.GetComponent<PropertySlot>();
@@ -88,8 +87,6 @@ public class DropZone : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
       Image buttonImage = parentPropertySlot.GetComponent<PropertySlot>().openPropertySlotButton.GetComponent<Image>();
       buttonImage.sprite = (c.tenants) ? gameManager.normal : gameManager.exclamation;
       buttonImage.color = (buttonImage.sprite == gameManager.normal) ? Color.white : Color.red;
-
-      managerImage.sprite = c.assignedManagerImage;
 
       gameManager.UpdateActionPoints(-1);
       d.parentToReturnTo = transform;

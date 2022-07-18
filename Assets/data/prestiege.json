@@ -1,0 +1,1093 @@
+{
+  "upgrade": [
+    {
+      "id": 0,
+      "cost": 0,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 1,
+      "cost": 3,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 2,
+      "cost": 4,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 3,
+      "cost": 5,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 4,
+      "cost": 9,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 5,
+      "cost": 10,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 6,
+      "cost": 8,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 7,
+      "cost": 9,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 8,
+      "cost": 10,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 9,
+      "cost": 14,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 10,
+      "cost": 12,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 11,
+      "cost": 13,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 12,
+      "cost": 14,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 13,
+      "cost": 18,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 14,
+      "cost": 16,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 15,
+      "cost": 20,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 16,
+      "cost": 21,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 17,
+      "cost": 19,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 18,
+      "cost": 20,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 19,
+      "cost": 24,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 20,
+      "cost": 25,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 21,
+      "cost": 23,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 22,
+      "cost": 27,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 23,
+      "cost": 25,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 24,
+      "cost": 26,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 25,
+      "cost": 27,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 26,
+      "cost": 31,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 27,
+      "cost": 29,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 28,
+      "cost": 33,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 29,
+      "cost": 31,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 30,
+      "cost": 35,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 31,
+      "cost": 36,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 32,
+      "cost": 34,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 33,
+      "cost": 38,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 34,
+      "cost": 36,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 35,
+      "cost": 40,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 36,
+      "cost": 38,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 37,
+      "cost": 42,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 38,
+      "cost": 43,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 39,
+      "cost": 41,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 40,
+      "cost": 42,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 41,
+      "cost": 46,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 42,
+      "cost": 44,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 43,
+      "cost": 48,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 44,
+      "cost": 49,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 45,
+      "cost": 47,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 46,
+      "cost": 48,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 47,
+      "cost": 49,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 48,
+      "cost": 53,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 49,
+      "cost": 54,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 50,
+      "cost": 55,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 51,
+      "cost": 56,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 52,
+      "cost": 54,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 53,
+      "cost": 58,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 54,
+      "cost": 56,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 55,
+      "cost": 60,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 56,
+      "cost": 61,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 57,
+      "cost": 59,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 58,
+      "cost": 63,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 59,
+      "cost": 61,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 60,
+      "cost": 62,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 61,
+      "cost": 63,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 62,
+      "cost": 64,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 63,
+      "cost": 65,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 64,
+      "cost": 66,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 65,
+      "cost": 70,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 66,
+      "cost": 71,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 67,
+      "cost": 72,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 68,
+      "cost": 73,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 69,
+      "cost": 71,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 70,
+      "cost": 75,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 71,
+      "cost": 73,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 72,
+      "cost": 77,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 73,
+      "cost": 78,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 74,
+      "cost": 76,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 75,
+      "cost": 80,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 76,
+      "cost": 78,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 77,
+      "cost": 82,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 78,
+      "cost": 80,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 79,
+      "cost": 81,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 80,
+      "cost": 85,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 81,
+      "cost": 83,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 82,
+      "cost": 84,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 83,
+      "cost": 85,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 84,
+      "cost": 86,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 85,
+      "cost": 87,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 86,
+      "cost": 88,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 87,
+      "cost": 89,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 88,
+      "cost": 90,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 89,
+      "cost": 94,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 90,
+      "cost": 92,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 91,
+      "cost": 96,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 92,
+      "cost": 94,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 93,
+      "cost": 98,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 94,
+      "cost": 96,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 95,
+      "cost": 97,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 96,
+      "cost": 98,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 97,
+      "cost": 99,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 98,
+      "cost": 103,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 99,
+      "cost": 101,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 100,
+      "cost": 105,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 101,
+      "cost": 103,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 102,
+      "cost": 104,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 103,
+      "cost": 108,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 104,
+      "cost": 106,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 105,
+      "cost": 107,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 106,
+      "cost": 108,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 107,
+      "cost": 112,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 108,
+      "cost": 110,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 109,
+      "cost": 111,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 110,
+      "cost": 115,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 111,
+      "cost": 113,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 112,
+      "cost": 117,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 113,
+      "cost": 118,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 114,
+      "cost": 116,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 115,
+      "cost": 117,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 116,
+      "cost": 121,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 117,
+      "cost": 122,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 118,
+      "cost": 120,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 119,
+      "cost": 121,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    },
+    {
+      "id": 120,
+      "cost": 500,
+      "name": "Starting Funds",
+      "description": "+$5,000 Starting cash",
+      "type": "start_money",
+      "amount": 5000,
+      "purchased": false
+    }
+  ]
+}
