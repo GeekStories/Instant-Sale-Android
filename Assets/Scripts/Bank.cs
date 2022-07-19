@@ -76,7 +76,6 @@ public class Bank : MonoBehaviour {
 
     currentPanel.SetActive(true);
   }
-
   public void GodModeAddMoney(float amount) {
     AddMoney(amount, "God mode");
   }
@@ -209,6 +208,11 @@ public class Bank : MonoBehaviour {
               Card c = ps.DropZone.GetChild(0).GetComponent<Card>();
 
               collectedValue += Mathf.FloorToInt(c.cost * gameManager.supplyDemandIndex) * 0.90f;
+
+              ps.tenancyTermText.text = "";
+              ps.openPropertySlotButton.GetComponent<Image>().sprite = gameManager.normal;
+              ps.openPropertySlotButton.GetComponent<Image>().color = Color.white;
+
               propertiesToBeRepod.Add(c);
 
               if(collectedValue > amountOwing) break;
@@ -219,6 +223,11 @@ public class Bank : MonoBehaviour {
           foreach(Card property in propertiesToBeRepod) {
             int salePrice = Mathf.FloorToInt(Mathf.FloorToInt(property.cost) * .90f);
             AddMoney(salePrice, "Property Sale"); //Force sell the property at %90 its value
+
+            if(property.tenants) {
+              AddMoney(-(property.rent * property.tenantTermRemaining), "Early Termination Fee");
+            }
+
             gameManager.GameStats["TotalPropertiesSold"]++;
             gameManager.GameStats["TotalValueOfPropertiesSold"] += salePrice;
             property.Destroy();

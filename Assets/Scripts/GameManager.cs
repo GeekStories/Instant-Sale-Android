@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour {
   public TextMeshProUGUI weeksPerSecondText, weekText, monthYearText, supplyDemandText;
   public TextMeshProUGUI cardsLeftText, weeksLeft;
   public TextMeshProUGUI primaryStatsText, otherStatsText, finalScoreText;
+  public TextMeshProUGUI autoTimerText;
 
   public Image[] displayCards;
 
@@ -26,6 +27,9 @@ public class GameManager : MonoBehaviour {
   public float timeBuffer = 0.75f;
   public float sellBuffer = 0.25f;
   public float supplyDemandIndex = 1.00f;
+
+  public float autoNextWeekMax;
+  float autoNextWeekTimer = 0.00f;
 
   public List<GameObject> hiredManagers = new();
   public List<GameObject> managersForHire = new();
@@ -70,7 +74,7 @@ public class GameManager : MonoBehaviour {
 
   public Transform CardPile;
   public Canvas tutorial;
-  public Button musicToggle, soundToggle, fireManagerButton;
+  public Button musicToggle, soundToggle, fireManagerButton, nextWeekButton;
 
   private void Start() {
     cardsLeftMax = 5;
@@ -84,11 +88,23 @@ public class GameManager : MonoBehaviour {
     }
 
     UpdateActionPoints(actionPointsMax);
-    // NextWeek();
     CheckPile();
     InvokeRepeating(nameof(RepeatingWeeks), 0, (60 - weeksPerMinute) * timeBuffer);
     InvokeRepeating(nameof(UpdateNetworth), 0, 0.5f);
+
+    autoNextWeekTimer = autoNextWeekMax;
   }
+
+  private void FixedUpdate() {
+    autoNextWeekTimer -= Time.deltaTime;
+
+    if(autoNextWeekTimer < 0) {
+      NextWeek();
+    }
+
+    autoTimerText.text = Mathf.Ceil(autoNextWeekTimer).ToString();
+  }
+
   public void UpdateNetworth() {
 
     float networth = Calculate.NetWorth(buyPanels, sellBuffer, supplyDemandIndex, bank.money, bank.Loans);
@@ -292,6 +308,8 @@ public class GameManager : MonoBehaviour {
 
     GameStats["NetWorth"] = networth;
     GameStats["Money"] = bank.money;
+
+    autoNextWeekTimer = autoNextWeekMax;
   }
   public void UpdateActionPoints(int amount) {
     actionPoints += amount;
@@ -486,7 +504,6 @@ public class GameManager : MonoBehaviour {
         + (GameStats["HighestNetworth"] / 100000)
         + (GameStats["MostAmountOfMoney"] / 100000);
   }
-
   public void OpenStatsPanel() {
     float score = CalculateScore();
     finalScoreText.text = $"Score: {score:#,##0}";

@@ -44,6 +44,8 @@ public class PropertyPanel : MonoBehaviour {
 
     card = (selectedSlot.DropZone.childCount > 0) ? selectedSlot.DropZone.GetChild(0).GetComponent<Card>() : null;
 
+    UpdatePropertyDetailsText();
+
     if(card == null) {
       renovationCostText.text = "No property in current slot!";
       renovationTimeText.text = "";
@@ -61,8 +63,6 @@ public class PropertyPanel : MonoBehaviour {
       propertyBondAmount.text = "";
 
       findNewTenantButton.interactable = false;
-      ClearManager();
-
       return;
     }
 
@@ -126,7 +126,6 @@ public class PropertyPanel : MonoBehaviour {
 
     UpdateRenovationText();
     UpdateTenantsText();
-    UpdatePropertyDetailsText();
   }
   public void AssignManager(GameObject newManager) {
     if(selectedSlot.assignedManager != null) ClearManager();
@@ -311,28 +310,26 @@ public class PropertyPanel : MonoBehaviour {
     ps.tenancyTermText.text = card.tenantTerm.ToString();
     gameManager.UpdateActionPoints(-1);
   }
-
   public void GenerateTenancy() {
     card.tenants = true;
     card.tenantTerm = Random.Range(1, 7) * 3;
     card.tenantTermRemaining = card.tenantTerm;
     card.tenantMoveInWeek = gameManager.week;
 
-    gameManager.bank.AddMoney(card.rent * 4, "Bond Payment");
+    gameManager.bank.AddMoney(card.rent, "Bond Payment");
     gameManager.bank.UpdatePropertyIncomes(activeSlot - 1, card.bondCost);
 
-    card.bondCost = card.rent * 4;
+    card.bondCost = card.rent;
 
-    gameManager.bank.AddMoney(card.rent * 4, "Rent in Advance Payment");
-    gameManager.bank.UpdatePropertyIncomes(activeSlot - 1, card.rent * 4);
+    gameManager.bank.AddMoney(card.rent / 2, "Rent in Advance Payment");
+    gameManager.bank.UpdatePropertyIncomes(activeSlot - 1, card.rent / 2);
 
-    card.totalRentInAdvance += card.rent * 4;
+    card.totalRentInAdvance += card.rent / 2;
     gameManager.GameStats["TotalNumberTenants"] += Random.Range(1, 5);
   }
   public int GetWaterCost(int usage) {
     return usage > 1000 ? Mathf.FloorToInt(waterRate * (usage - 1000)) : 0;
   }
-
   float CalculateDifferenceAsPercentage(int initialValue, int currentValue) {
     if(initialValue == currentValue) return 0;
 
