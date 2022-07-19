@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour {
   public TextMeshProUGUI weeksPerSecondText, weekText, monthYearText, supplyDemandText;
   public TextMeshProUGUI cardsLeftText, weeksLeft;
   public TextMeshProUGUI primaryStatsText, otherStatsText, finalScoreText;
-  public TextMeshProUGUI autoTimerText;
+  public TextMeshProUGUI autoTimerText, welcomeBackText;
 
   public Image[] displayCards;
 
@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour {
   public GameObject selectedManager;
   public GameObject selectedHiredManager;
   public GameObject statsPanel;
+  public GameObject welcomeBackWindow;
 
   public Image selectedHiredManagerIcon, selectedManagerIcon;
 
@@ -77,24 +78,28 @@ public class GameManager : MonoBehaviour {
   public Button musicToggle, soundToggle, fireManagerButton, nextWeekButton;
 
   private void Start() {
-    cardsLeftMax = 5;
-    cardsLeft = cardsLeftMax;
-    year = 0;
+    string gamestate = PlayerPrefs.GetString("gameState", "");
+    if(gamestate != "") {
+      Load();
+    } else {
+      cardsLeftMax = 5;
+      cardsLeft = cardsLeftMax;
+      year = 0;
 
-    int x = Random.Range(3, 10); // Number of managers to generate
-    for(int i = 0; i < x; i++) {
-      GameObject newManager = GetComponent<GenerateManagers>().GenerateManager(managersForHirePanel, this);
-      managersForHire.Add(newManager);
+      int x = Random.Range(3, 10); // Number of managers to generate
+      for(int i = 0; i < x; i++) {
+        GameObject newManager = GetComponent<GenerateManagers>().GenerateManager(managersForHirePanel, this);
+        managersForHire.Add(newManager);
+      }
+
+      UpdateActionPoints(actionPointsMax);
+      CheckPile();
+      InvokeRepeating(nameof(RepeatingWeeks), 0, (60 - weeksPerMinute) * timeBuffer);
+      InvokeRepeating(nameof(UpdateNetworth), 0, 0.5f);
+
+      autoNextWeekTimer = autoNextWeekMax;
     }
-
-    UpdateActionPoints(actionPointsMax);
-    CheckPile();
-    InvokeRepeating(nameof(RepeatingWeeks), 0, (60 - weeksPerMinute) * timeBuffer);
-    InvokeRepeating(nameof(UpdateNetworth), 0, 0.5f);
-
-    autoNextWeekTimer = autoNextWeekMax;
   }
-
   private void FixedUpdate() {
     autoNextWeekTimer -= Time.deltaTime;
 
@@ -525,7 +530,50 @@ public class GameManager : MonoBehaviour {
 
     statsPanel.SetActive(true);
   }
+  public string GenerateGameStateString() {
+    return "";
+  }
   public void ResetGame() {
     UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+  }
+  private void OnApplicationFocus(bool hasFocus) {
+    if(hasFocus) Load();
+    else Save();
+  }
+  private void OnApplicationQuit() {
+    Save();
+  }
+  private void Save() {
+    string gameState = GenerateGameStateString();
+    PlayerPrefs.SetString("gameState", gameState);
+    PlayerPrefs.SetString("sysString", System.DateTime.Now.ToBinary().ToString());
+    PlayerPrefs.Save();
+  }
+  private void Load() {
+    cardsLeftMax = 5;
+    cardsLeft = cardsLeftMax;
+    year = 0;
+
+    int x = Random.Range(3, 10); // Number of managers to generate
+    for(int i = 0; i < x; i++) {
+      GameObject newManager = GetComponent<GenerateManagers>().GenerateManager(managersForHirePanel, this);
+      managersForHire.Add(newManager);
+    }
+
+    UpdateActionPoints(actionPointsMax);
+    CheckPile();
+    InvokeRepeating(nameof(RepeatingWeeks), 0, (60 - weeksPerMinute) * timeBuffer);
+    InvokeRepeating(nameof(UpdateNetworth), 0, 0.5f);
+
+    autoNextWeekTimer = autoNextWeekMax;
+
+    System.DateTime currentDate = System.DateTime.Now;
+    long temp = System.Convert.ToInt64(PlayerPrefs.GetString("sysString"));
+    System.DateTime oldDate = System.DateTime.FromBinary(temp);
+    System.TimeSpan difference = currentDate.Subtract(oldDate);
+
+
+    welcomeBackText.text = $"You were away for a total of {difference.Hours}h {difference.Minutes}m {difference.Seconds}s and earned a total of $0 in rent income.";
+    welcomeBackWindow.SetActive(true);
   }
 }
